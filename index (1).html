@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Zurich Fruit Bucket Quest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700&family=Gowun+Dodum&display=swap">
+<style>
+/* Layout: big screen = six team bucket boards over the Tree of Life art; phone = one column of squirrel cards */
+:root{
+  --leaf:#3f7a3a; --leaf-deep:#22472a; --apple:#c8283a; --apple-deep:#8c1525;
+  --cream:#fff8ef; --paper:#fffdf9; --blush:#f4b5c4; --pink:#e07a98;
+  --wood:#a8743f; --wood-deep:#6e4721; --ink:#2f2924; --muted:#7a6d62; --line:#eadfd2;
+  --gold:#f2b632; --sky:#f6e7d6;
+  --f-display:"Fredoka","Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-body:"Nunito","Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--cream);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+h1,h2,h3,.disp{font-family:var(--f-display);font-weight:600;margin:0;text-wrap:balance;letter-spacing:.01em}
+.view{min-height:100%}
+.demo-flag{position:fixed;right:calc(8px + env(safe-area-inset-right,0px));top:calc(8px + env(safe-area-inset-top,0px));z-index:50;background:var(--ink);color:var(--cream);font-size:12px;padding:4px 12px;border-radius:999px;opacity:.85;pointer-events:none}
+
+/* ---------- shared ---------- */
+.btn{border:0;border-radius:14px;padding:12px 18px;font-family:var(--f-display);font-size:18px;background:var(--apple);color:#fff;box-shadow:0 3px 0 var(--apple-deep);transition:transform .08s}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--apple-deep)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.ghost{background:var(--paper);color:var(--ink);box-shadow:0 2px 0 var(--line);border:1px solid var(--line)}
+.btn.green{background:var(--leaf);box-shadow:0 3px 0 var(--leaf-deep)}
+.link{background:none;border:0;padding:0;color:var(--leaf);text-decoration:underline;text-underline-offset:3px;font-size:14px}
+.field{display:grid;gap:6px}
+.field label{font-size:14px;color:var(--muted)}
+.field input,.field select{width:100%;border:2px solid var(--line);background:var(--paper);border-radius:12px;padding:12px 14px;font-size:17px}
+.field input:focus{border-color:var(--leaf);outline:none}
+.bar{height:14px;background:#efe4d6;border-radius:999px;overflow:hidden}
+.bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--apple),#e2485a);border-radius:inherit;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.bar.done>i{background:linear-gradient(90deg,var(--gold),#f7cd5a)}
+.toast{position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top,0px));transform:translate(-50%,-20px);opacity:0;background:var(--leaf-deep);color:#fff;padding:10px 18px;border-radius:999px;font-family:var(--f-display);font-size:17px;transition:.3s;z-index:60;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
+.toast.on{transform:translate(-50%,0);opacity:1}
+.toast.err{background:var(--apple-deep)}
+
+/* ---------- participant (phone) ---------- */
+#view-join{max-width:520px;margin:0 auto;padding-block:16px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:14px}
+.j-brand{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.j-brand h1{font-size:24px;color:var(--leaf-deep)}
+.j-brand span{font-size:13px;color:var(--muted)}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:18px}
+.setup h2{font-size:22px;margin-bottom:4px}
+.setup p{margin:0 0 14px;color:var(--muted);font-size:15px}
+.setup .step{display:grid;gap:10px;margin-bottom:18px}
+.setup .step>b{font-family:var(--f-display);font-weight:600;font-size:17px}
+.choice{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.choice.four{grid-template-columns:repeat(4,1fr)}
+.choice button{border:2px solid var(--line);background:var(--cream);border-radius:14px;padding:12px 6px;font-family:var(--f-display);font-size:17px;min-width:0;overflow-wrap:anywhere}
+.choice button[aria-pressed="true"]{border-color:var(--apple);background:#fde9ec;color:var(--apple-deep)}
+.hero{position:relative;overflow:hidden;background:linear-gradient(180deg,#fdeff2,var(--paper));padding:0}
+.hero-top{display:grid;grid-template-columns:118px 1fr;gap:14px;align-items:end;padding:16px 16px 0}
+.hero-top img{width:118px;height:118px;object-fit:cover;object-position:30% 20%;border-radius:22px;border:3px solid #fff;box-shadow:0 6px 16px rgba(140,21,37,.15)}
+.hero-who{min-width:0;padding-bottom:4px}
+.hero-who .role{font-size:13px;color:var(--pink);letter-spacing:.06em}
+.hero-who h2{font-size:24px;overflow-wrap:anywhere}
+.hero-who .where{font-size:14px;color:var(--muted)}
+.my-count{display:flex;align-items:baseline;gap:8px;padding:12px 16px 4px}
+.my-count .disp{font-size:52px;line-height:1;color:var(--apple)}
+.my-count span{color:var(--muted)}
+.my-baskets{display:flex;flex-wrap:wrap;gap:4px;padding:6px 16px 16px;min-height:44px}
+.my-baskets svg{width:34px;height:34px}
+.my-baskets .pop{animation:pop .6s cubic-bezier(.2,1.6,.4,1)}
+.my-baskets .empty-note{color:var(--muted);font-size:14px}
+@keyframes pop{0%{transform:scale(0) translateY(-20px)}100%{transform:none}}
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.stat h3{font-size:15px;color:var(--muted);font-family:var(--f-body);font-weight:700}
+.stat .big{font-family:var(--f-display);font-size:30px;line-height:1.2;margin:4px 0 8px}
+.stat .big small{font-size:16px;color:var(--muted)}
+.stat .sub{font-size:13px;color:var(--muted);margin-top:6px}
+.form h2{font-size:21px;margin-bottom:12px}
+.form form{display:grid;gap:12px}
+.mine-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.mine-list li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding:6px 0;font-size:15px}
+.mine-list li span:last-child{color:var(--muted);white-space:nowrap}
+.mine h2{font-size:18px;margin-bottom:8px}
+.drop-apple{position:fixed;z-index:70;width:34px;height:34px;pointer-events:none}
+
+/* ---------- big screen: translucent glass consoles over the art ---------- */
+#view-screen{--glass:rgba(22,30,18,.34);--glass-strong:rgba(22,30,18,.5);--glass-line:rgba(255,255,255,.32);--soft:rgba(255,255,255,.78);--track:rgba(255,255,255,.18);position:relative;height:100%;min-height:100vh;overflow:hidden;color:#fff;background:#2c3b22}
+.scr-bg{position:absolute;inset:0;background:url(assets/tree.jpg) center 62%/cover no-repeat}
+.scr-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,30,15,.32) 0%,rgba(20,30,15,0) 20%,rgba(20,30,15,0) 70%,rgba(20,30,15,.28) 100%)}
+.glass,.team,.feed-item,.scr-total,.scr-qr{background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(7px) saturate(1.2);backdrop-filter:blur(7px) saturate(1.2);box-shadow:0 8px 30px rgba(0,0,0,.18)}
+.scr-wrap{position:relative;height:100%;min-height:100vh;display:grid;grid-template-rows:auto 1fr auto;padding-block:max(1.6vh,12px);padding-left:max(16px,1.6vw,env(safe-area-inset-left,0px));padding-right:max(16px,1.6vw,env(safe-area-inset-right,0px));gap:1.2vh}
+.scr-top{display:flex;align-items:flex-start;justify-content:space-between;gap:2vw}
+.scr-title h1{font-size:clamp(28px,3.4vw,64px);text-shadow:0 3px 14px rgba(0,0,0,.5);line-height:1.05}
+.scr-title p{margin:.3em 0 0;font-size:clamp(13px,1.1vw,20px);text-shadow:0 1px 6px rgba(0,0,0,.7)}
+.scr-total{text-align:center;border-radius:22px;padding:1vh 1.8vw}
+.scr-total .lab{font-size:clamp(12px,1vw,18px);color:var(--soft)}
+.scr-total .disp{font-size:clamp(34px,4.4vw,84px);line-height:1;color:#fff;text-shadow:0 2px 12px rgba(200,40,58,.8)}
+.scr-total .goal{font-size:clamp(12px,.95vw,17px);color:var(--soft)}
+.scr-qr{display:flex;gap:10px;align-items:center;border-radius:18px;padding:8px 12px 8px 8px}
+.scr-qr .qr{overflow:hidden;width:clamp(70px,7vw,130px);height:clamp(70px,7vw,130px);background:#fff;border-radius:8px;padding:4px}
+.scr-qr .qr img,.scr-qr .qr canvas{width:100%!important;height:100%!important}
+.scr-qr p{margin:0;font-size:clamp(12px,.9vw,16px);max-width:12em;color:var(--soft)}
+.scr-qr b{font-family:var(--f-display);font-weight:600;font-size:clamp(15px,1.2vw,22px);display:block;color:#fff}
+.scr-mid{position:relative;min-height:0;overflow:hidden}
+.feed{position:absolute;right:0;top:0;width:min(26vw,380px);display:grid;gap:6px}
+.feed-item{border-radius:14px;padding:6px 12px;display:flex;align-items:center;gap:10px;animation:feedIn .5s ease-out;font-size:clamp(12px,.9vw,17px)}
+.feed-item svg{width:1.9em;height:1.9em;flex:none}
+.feed-item .who{font-family:var(--f-display);font-weight:600}
+.feed-item .meta{color:var(--soft);font-size:.85em}
+.feed-item:nth-child(n+4){opacity:.7}
+@keyframes feedIn{from{transform:translateX(30px);opacity:0}}
+.teams{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:max(8px,.8vw);align-items:end}
+.team{border-radius:18px;padding:max(8px,.7vw);display:grid;gap:.6vh;position:relative;transition:box-shadow .4s,background .4s}
+.team.done{background:rgba(120,86,10,.38);box-shadow:0 0 0 3px var(--gold),0 10px 40px rgba(242,182,50,.5)}
+.team-head{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.team-head h2{font-size:clamp(15px,1.4vw,28px);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 6px rgba(0,0,0,.4)}
+.team-head .rank{font-size:clamp(11px,.85vw,15px);color:#fff;background:rgba(63,122,58,.85);border-radius:999px;padding:1px 9px;white-space:nowrap;font-family:var(--f-display)}
+.team-count{font-family:var(--f-display);font-weight:600;font-size:clamp(20px,2.1vw,42px);line-height:1;text-shadow:0 1px 8px rgba(0,0,0,.4)}
+.team-count small{font-size:.5em;color:var(--soft)}
+.slots{display:grid;gap:1px}
+.slot{aspect-ratio:1;position:relative}
+.slot.empty::before{content:"";position:absolute;inset:18%;border:1.5px dashed rgba(255,255,255,.42);border-radius:30%}
+.slot svg{position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
+.slot.new svg{animation:slotIn .7s cubic-bezier(.2,1.6,.4,1)}
+@keyframes slotIn{0%{transform:scale(0) translateY(-40%)}100%{transform:none}}
+.over{font-size:clamp(11px,.85vw,15px);color:var(--wood-deep);background:rgba(251,233,192,.9);border-radius:8px;padding:2px 8px;justify-self:start;font-family:var(--f-display)}
+.zones{display:grid;gap:2px;font-size:clamp(10px,.75vw,14px)}
+.zone{display:grid;grid-template-columns:4.2em 1fr 2em;align-items:center;gap:6px}
+.zone span:first-child{color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.zone .bar{height:.6em;background:var(--track)}
+.zone .bar>i{background:#9ad07f}
+.zone span:last-child{text-align:right}
+.done-badge{position:absolute;top:-14px;right:10px;background:var(--gold);color:var(--wood-deep);font-family:var(--f-display);border-radius:999px;padding:2px 12px;font-size:clamp(12px,1vw,18px);box-shadow:0 3px 0 #c8901a}
+.scr-login{position:absolute;inset:0;display:grid;place-items:center;background:rgba(20,30,15,.55);z-index:20;padding:16px}
+.scr-login .card{color:var(--ink);max-width:420px;text-align:center;display:grid;gap:12px}
+.scr-login h2{font-size:24px}
+.scr-login p{margin:0;color:var(--muted)}
+.fly{position:fixed;z-index:30;width:44px;height:44px;pointer-events:none}
+.celebrate{position:absolute;inset:0;display:grid;place-items:center;z-index:25;pointer-events:none}
+.celebrate .msg{background:rgba(255,248,239,.97);color:var(--apple-deep);font-family:var(--f-display);font-size:clamp(32px,4.6vw,90px);padding:2vh 4vw;border-radius:30px;box-shadow:0 0 0 6px var(--gold),0 20px 60px rgba(0,0,0,.4);animation:cel 4s ease forwards;text-align:center}
+.celebrate .msg small{display:block;font-size:.38em;color:var(--leaf-deep)}
+@keyframes cel{0%{transform:scale(.3);opacity:0}12%{transform:scale(1.05);opacity:1}18%{transform:scale(1)}85%{opacity:1}100%{opacity:0;transform:translateY(-30px)}}
+.confetti{position:absolute;top:-40px;width:26px;height:26px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+@media (max-width:900px){
+  .teams{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .feed{position:static;width:auto}
+  .scr-top{flex-wrap:wrap}
+  .scr-qr{display:none}
+}
+
+/* ---------- host ---------- */
+#view-admin{max-width:980px;margin:0 auto;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:16px}
+#view-admin h1{font-size:28px;color:var(--leaf-deep)}
+#view-admin h2{font-size:21px;margin-bottom:10px}
+.adm-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.adm-head .who{font-size:14px;color:var(--muted)}
+.adm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px}
+.team-edit{display:grid;grid-template-columns:2.4em 1fr 6em;gap:8px;align-items:center}
+.team-edit b{font-family:var(--f-display);font-weight:600;color:var(--muted)}
+.team-edit input{border:2px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--paper);min-width:0;width:100%}
+.adm-links{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center}
+.adm-links .qr{width:150px;height:150px;background:#fff;padding:6px;border-radius:10px;border:1px solid var(--line)}
+.adm-links code{font-size:14px;background:var(--cream);padding:4px 8px;border-radius:8px;word-break:break-all;display:inline-block}
+.adm-links p{margin:0 0 10px}
+.tbl-wrap{overflow-x:auto;max-height:480px;overflow-y:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--paper)}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{position:sticky;top:0;background:var(--sky);font-weight:700}
+td button{border:1px solid var(--line);background:var(--cream);border-radius:8px;padding:2px 10px;font-size:13px}
+.row-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.danger{border:2px dashed var(--apple);border-radius:16px;padding:14px;display:grid;gap:10px}
+.danger input{border:2px solid var(--line);border-radius:10px;padding:8px 10px;max-width:200px}
+.muted{color:var(--muted);font-size:14px}
+@media (max-width:520px){.adm-links{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-basket" viewBox="0 0 48 48">
+      <path d="M9 25 Q24 1 39 25" fill="none" stroke="#8a5a2b" stroke-width="3.2" stroke-linecap="round"/>
+      <circle cx="18" cy="21" r="7.5" fill="#c8283a"/>
+      <circle cx="29.5" cy="21.5" r="7" fill="#a91c2d"/>
+      <circle cx="16" cy="18.5" r="2" fill="#f7a3ad" opacity=".8"/>
+      <path d="M24 14.5 q1-5 5-6" fill="none" stroke="#5a3a1a" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M26 11 q5-4 8 0 q-4 3-8 0z" fill="#4f8a3f"/>
+      <path d="M6 26 H42 L38.4 42 Q37.8 44.5 35 44.5 H13 Q10.2 44.5 9.6 42 Z" fill="#c8914f"/>
+      <path d="M8 32 H40 M9.2 38 H38.8" stroke="#9c6a34" stroke-width="1.6"/>
+      <path d="M15 27 L16 44 M24 27 V44 M33 27 L32 44" stroke="#9c6a34" stroke-width="1.4"/>
+      <rect x="4.5" y="23.5" width="39" height="5" rx="2.5" fill="#a8743f"/>
+    </symbol>
+    <symbol id="i-basket-gold" viewBox="0 0 48 48">
+      <path d="M9 25 Q24 1 39 25" fill="none" stroke="#b77e12" stroke-width="3.2" stroke-linecap="round"/>
+      <circle cx="18" cy="21" r="7.5" fill="#c8283a"/>
+      <circle cx="29.5" cy="21.5" r="7" fill="#a91c2d"/>
+      <path d="M6 26 H42 L38.4 42 Q37.8 44.5 35 44.5 H13 Q10.2 44.5 9.6 42 Z" fill="#f2b632"/>
+      <path d="M8 32 H40 M9.2 38 H38.8" stroke="#c8901a" stroke-width="1.6"/>
+      <rect x="4.5" y="23.5" width="39" height="5" rx="2.5" fill="#d99a1c"/>
+    </symbol>
+    <symbol id="i-apple" viewBox="0 0 48 48">
+      <path d="M24 14 C18 9 7 11 7 24 C7 35 15 44 20 44 C22 44 23 43 24 43 C25 43 26 44 28 44 C33 44 41 35 41 24 C41 11 30 9 24 14Z" fill="#c8283a"/>
+      <ellipse cx="16" cy="21" rx="3" ry="5" fill="#f19aa5" opacity=".7"/>
+      <path d="M24 14 q0-6 4-9" fill="none" stroke="#5a3a1a" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M26 9 q7-6 12-1 q-6 5-12 1z" fill="#4f8a3f"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ===== participant ===== -->
+<main id="view-join" class="view" hidden>
+  <div class="j-brand">
+    <h1>Zurich Fruit Bucket Quest</h1>
+    <span id="j-sync">Loading…</span>
+  </div>
+
+  <section class="card setup" id="j-setup" hidden>
+    <h2>Join as a harvester</h2>
+    <p>Pick your team, zone and name once. This phone will remember them.</p>
+    <div class="step"><b>Your team</b><div class="choice" id="j-teams"></div></div>
+    <div class="step"><b>Your zone</b><div class="choice four" id="j-zones"></div></div>
+    <div class="step field"><label for="j-name">Your name</label><input id="j-name" maxlength="20" autocomplete="name" placeholder="e.g. Anna Keller"></div>
+    <button class="btn" id="j-start" disabled>Start harvesting</button>
+  </section>
+
+  <div id="j-main" hidden style="display:grid;gap:14px">
+    <section class="card hero">
+      <div class="hero-top">
+        <img src="assets/squirrel.jpg" alt="Squirrel harvester holding a bucket of apples">
+        <div class="hero-who">
+          <div class="role">Harvester</div>
+          <h2 id="j-who"></h2>
+          <div class="where"><span id="j-where"></span> · <button class="link" id="j-change">Change</button></div>
+        </div>
+      </div>
+      <div class="my-count"><span class="disp num" id="j-mycount">0</span><span id="j-mylabel">buckets collected</span></div>
+      <div class="my-baskets" id="j-mybaskets"></div>
+    </section>
+
+    <div class="stat-row">
+      <section class="card stat">
+        <h3 id="j-team-label">Your team</h3>
+        <div class="big num"><span id="j-team-n">0</span> <small>/ <span id="j-team-q">0</span></small></div>
+        <div class="bar" id="j-team-bar"><i></i></div>
+        <div class="sub" id="j-team-left"></div>
+      </section>
+      <section class="card stat">
+        <h3>Everyone</h3>
+        <div class="big num"><span id="j-all-n">0</span> <small>/ <span id="j-all-q">0</span></small></div>
+        <div class="bar" id="j-all-bar"><i></i></div>
+        <div class="sub" id="j-all-sub">All 6 teams</div>
+      </section>
+    </div>
+
+    <section class="card form">
+      <h2>Get a new bucket</h2>
+      <form id="j-form" autocomplete="off">
+        <div class="field"><label for="f-me">Your name</label><input id="f-me" maxlength="20" required></div>
+        <div class="field"><label for="f-basket">Bucket name</label><input id="f-basket" maxlength="20" required placeholder="Name of the person for this bucket"></div>
+        <div class="field"><label for="f-rel">Relationship</label><input id="f-rel" maxlength="20" required list="rel-list" placeholder="e.g. Friend, Family, Coworker"></div>
+        <datalist id="rel-list"><option value="Family"><option value="Friend"><option value="Coworker"><option value="Classmate"><option value="Neighbor"><option value="Acquaintance"></datalist>
+        <button class="btn" type="submit" id="f-submit">Add bucket</button>
+      </form>
+    </section>
+
+    <section class="card mine">
+      <h2>My buckets</h2>
+      <ul class="mine-list" id="j-minelist"></ul>
+      <p class="muted" id="j-mine-empty">No buckets yet. Add your first one above.</p>
+    </section>
+  </div>
+</main>
+
+<!-- ===== big screen ===== -->
+<main id="view-screen" class="view" hidden>
+  <div class="scr-bg"></div>
+  <div class="scr-wrap">
+    <header class="scr-top">
+      <div class="scr-title">
+        <h1 id="s-title">Zurich Fruit Bucket Quest</h1>
+        <p>Gather buckets for the fruit of the Tree of Life</p>
+      </div>
+      <div class="scr-total glass">
+        <div class="lab">Buckets collected</div>
+        <div class="disp num" id="s-total">0</div>
+        <div class="goal num">Goal <span id="s-goal">0</span></div>
+      </div>
+      <div class="scr-qr glass">
+        <div class="qr" id="s-qr"></div>
+        <p><b>Join on your phone</b>Scan, then pick your team, zone and name</p>
+      </div>
+    </header>
+    <div class="scr-mid"><div class="feed" id="s-feed"></div></div>
+    <div class="teams" id="s-teams"></div>
+  </div>
+  <div class="celebrate" id="s-cel"></div>
+  <div class="scr-login" id="s-login" hidden>
+    <div class="card">
+      <h2>Host sign-in</h2>
+      <p id="s-login-msg">The big screen opens with the host's Google account. Participants don't need to sign in.</p>
+      <button class="btn green" id="s-signin">Sign in with Google</button>
+    </div>
+  </div>
+</main>
+
+<!-- ===== host ===== -->
+<main id="view-admin" class="view" hidden>
+  <div class="adm-head">
+    <h1>Host panel</h1>
+    <div class="who"><span id="a-who"></span> <button class="link" id="a-signout" hidden>Sign out</button></div>
+  </div>
+
+  <section class="card" id="a-login" hidden>
+    <h2>Host sign-in</h2>
+    <p class="muted" id="a-login-msg">Sign in with the host Google account listed in your Firebase security rules.</p>
+    <button class="btn green" id="a-signin">Sign in with Google</button>
+  </section>
+
+  <div id="a-main" hidden style="display:grid;gap:16px">
+    <section class="card">
+      <h2>Links</h2>
+      <div class="adm-links">
+        <div class="qr" id="a-qr"></div>
+        <div>
+          <p>Participants (phones)<br><code id="a-url-join"></code></p>
+          <p>Big screen<br><code id="a-url-screen"></code></p>
+          <p class="muted">The big screen also shows the join QR code. Keep the big screen open during the game: it sends the latest totals to participants' phones.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Game settings</h2>
+      <form id="a-form" style="display:grid;gap:14px">
+        <div class="field"><label for="a-title">Game title</label><input id="a-title" maxlength="40"></div>
+        <div class="adm-grid">
+          <div>
+            <div class="muted" style="margin-bottom:8px">Team name · quota (buckets)</div>
+            <div id="a-teams" style="display:grid;gap:8px"></div>
+          </div>
+          <div>
+            <div class="muted" style="margin-bottom:8px">Zone names (same for every team)</div>
+            <div id="a-zones" style="display:grid;gap:8px"></div>
+          </div>
+        </div>
+        <div><button class="btn green" type="submit">Save settings</button></div>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Buckets received <span class="muted num" id="a-count"></span></h2>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Time</th><th>Team</th><th>Zone</th><th>Harvester</th><th>Bucket name</th><th>Relationship</th><th></th></tr></thead>
+          <tbody id="a-rows"></tbody>
+        </table>
+      </div>
+      <div class="row-actions">
+        <button class="btn ghost" id="a-csv">Download CSV</button>
+        <button class="btn ghost" id="a-demo" hidden>Add 30 sample buckets (demo only)</button>
+      </div>
+    </section>
+
+    <section class="danger">
+      <h2 style="margin:0">Reset game</h2>
+      <p class="muted" style="margin:0">Deletes every bucket record. Settings (team names, quotas) stay. This can't be undone, so type <b>RESET</b> below to enable the button.</p>
+      <div class="row-actions" style="margin:0">
+        <input id="a-reset-text" placeholder="RESET" aria-label="Type RESET to confirm">
+        <button class="btn" id="a-reset" disabled>Delete all buckets</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="demo-flag" id="demo-flag" hidden>Demo mode · saved in this browser only</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="config.js?v=4"></script>
+<script type="module" src="app.js?v=4"></script>
+</body>
+</html>
