@@ -1,0 +1,37 @@
+rules_version = '2';
+// Zurich Fruit Bucket Quest security rules
+// Replace the host email below with your Google account, paste everything into
+// Firebase console > Firestore > Rules, and click Publish.
+// For several hosts: ['a@gmail.com', 'b@gmail.com']
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email in ['YOUR_EMAIL@gmail.com'];
+    }
+
+    function okText(v) {
+      return v is string && v.size() > 0 && v.size() <= 20;
+    }
+
+    // Team names/quotas (config) and the phone summary: anyone reads, only hosts write
+    match /public/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Bucket records: participants can only add; only hosts can read the real names
+    match /baskets/{basketId} {
+      allow read, update, delete: if isAdmin();
+      allow create: if request.resource.data.keys().hasOnly(['team', 'zone', 'harvester', 'basket', 'relation', 'ts'])
+        && request.resource.data.keys().hasAll(['team', 'zone', 'harvester', 'basket', 'relation', 'ts'])
+        && request.resource.data.team in ['t1', 't2', 't3', 't4', 't5', 't6']
+        && request.resource.data.zone in ['z1', 'z2', 'z3', 'z4']
+        && okText(request.resource.data.harvester)
+        && okText(request.resource.data.basket)
+        && okText(request.resource.data.relation)
+        && request.resource.data.ts == request.time;
+    }
+  }
+}
