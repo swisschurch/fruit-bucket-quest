@@ -372,14 +372,14 @@ function startScreen() {
     const ranked = [...game.teams].sort((a, b) => stats.teams[b.id].total / b.quota - stats.teams[a.id].total / a.quota);
     const rankOf = Object.fromEntries(ranked.map((t, i) => [t.id, i + 1]));
     const box = $("#s-teams");
-    if (box.children.length !== 6) box.innerHTML = game.teams.map((t) => `<article class="team" data-id="${t.id}"></article>`).join("");
+    if (box.children.length !== 6) box.innerHTML = game.teams.map((t) => `<article class="team glass" data-id="${t.id}"></article>`).join("");
 
     game.teams.forEach((t) => {
       const el = box.querySelector(`[data-id="${t.id}"]`);
       const T = stats.teams[t.id];
       const n = T.total, q = t.quota;
       const before = prev ? prev[t.id] : n;
-      const cols = Math.max(8, Math.ceil(Math.sqrt(q * 1.6)));
+      const cols = Math.max(10, Math.ceil(Math.sqrt(q * 2.6)));
       const filled = Math.min(n, q);
       const slots = Array.from({ length: q }, (_, i) =>
         i < filled ? `<div class="slot${i >= before && prev ? " new" : ""}">${svg("i-basket")}</div>` : `<div class="slot empty"></div>`).join("");
@@ -403,8 +403,8 @@ function startScreen() {
     prev = Object.fromEntries(game.teams.map((t) => [t.id, stats.teams[t.id].total]));
 
     const nameOf = Object.fromEntries(game.teams.map((t) => [t.id, t.name]));
-    $("#s-feed").innerHTML = stats.recent.slice(0, 5).map((r) => `
-      <div class="feed-item" data-k="${esc(r.id)}">${svg("i-basket")}
+    $("#s-feed").innerHTML = stats.recent.slice(0, 4).map((r) => `
+      <div class="feed-item glass" data-k="${esc(r.id)}">${svg("i-basket")}
         <div><div><span class="who">${esc(r.harvester)}</span> added a bucket</div>
         <div class="meta">${esc(nameOf[r.team] || "")} · ${esc(game.zones[ZONE_IDS.indexOf(r.zone)] || "")} · ${esc(r.masked)}</div></div></div>`).join("");
   }
