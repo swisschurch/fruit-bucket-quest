@@ -6,9 +6,9 @@
 
 | 화면 | 주소 | 누가 |
 |---|---|---|
-| 참여자 | `https://<아이디>.github.io/<저장소>/` | 참여자 휴대폰 (로그인 없음) |
-| 대형 스크린 | 위 주소 끝에 `#screen` | 진행자 노트북 → 프로젝터 |
-| 진행자 | 위 주소 끝에 `#admin` | 진행자 (팀 이름·할당량 설정, 기록 확인·삭제, 초기화) |
+| 참여자 | https://swisschurch.github.io/fruit-bucket-quest/ | 참여자 휴대폰 (로그인 없음) |
+| 대형 스크린 | https://swisschurch.github.io/fruit-bucket-quest/#screen | 진행자 노트북 → 프로젝터 |
+| 진행자 | https://swisschurch.github.io/fruit-bucket-quest/#admin | 진행자 (팀 이름·할당량 설정, 기록 확인·삭제, 초기화) |
 
 ## 먼저 미리 보기 (데모 모드)
 
@@ -29,7 +29,7 @@
 1. GitHub에서 새 저장소 생성 (Public)
 2. 이 폴더의 파일 전부(`index.html`, `app.js`, `config.js`, `assets/` 폴더)를 업로드
 3. 저장소 **Settings > Pages** → Source: `Deploy from a branch`, Branch: `main` / `(root)` → Save
-4. 1~2분 뒤 `https://<아이디>.github.io/<저장소>/` 로 접속
+4. 1~2분 뒤 https://swisschurch.github.io/fruit-bucket-quest/ 로 접속
 5. Firebase 콘솔 **Authentication > 설정 > 승인된 도메인**에 `<아이디>.github.io` 추가 (구글 로그인용)
 
 ## 3. 게임 당일 순서
