@@ -98,8 +98,8 @@ h1,h2,h3,.disp{font-family:var(--f-display);font-weight:600;margin:0;text-wrap:b
 
 /* ---------- big screen: translucent glass consoles over the art ---------- */
 #view-screen{--glass:rgba(44,26,22,.40);--glass-strong:rgba(44,26,22,.55);--glass-line:rgba(255,255,255,.32);--soft:rgba(255,255,255,.78);--track:rgba(255,255,255,.18);position:relative;height:100%;min-height:100vh;overflow:hidden;color:#fff;background:#7fb0de}
-.scr-bg{position:absolute;inset:0;background:url(assets/picnic.jpg) center 45%/cover no-repeat}
-.scr-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(25,45,70,.38) 0%,rgba(25,45,70,0) 22%,rgba(60,20,20,0) 62%,rgba(60,20,20,.30) 100%)}
+.scr-bg{position:absolute;inset:0;background:url(assets/picnic.jpg?v=6) 50% -4.5vw/100% auto no-repeat,repeating-linear-gradient(0deg,rgba(214,48,62,.6) 0 3vw,transparent 3vw 6vw),repeating-linear-gradient(90deg,rgba(214,48,62,.6) 0 3vw,transparent 3vw 6vw),#f3e6e2}
+.scr-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(25,45,70,.38) 0%,rgba(25,45,70,0) 22%,rgba(60,20,20,0) 70%,rgba(60,20,20,.22) 100%)}
 .glass,.team,.feed-item,.scr-total,.scr-qr{background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(7px) saturate(1.2);backdrop-filter:blur(7px) saturate(1.2);box-shadow:0 8px 30px rgba(0,0,0,.18)}
 .scr-wrap{position:relative;height:100%;min-height:100vh;display:grid;grid-template-rows:auto 1fr auto;padding-block:max(1.6vh,12px);padding-left:max(16px,1.6vw,env(safe-area-inset-left,0px));padding-right:max(16px,1.6vw,env(safe-area-inset-right,0px));gap:1.2vh}
 .scr-top{display:flex;align-items:flex-start;justify-content:space-between;gap:2vw}
@@ -388,7 +388,7 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
 <div class="demo-flag" id="demo-flag" hidden>Demo mode · saved in this browser only</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="config.js?v=5"></script>
-<script type="module" src="app.js?v=5"></script>
+<script src="config.js?v=6"></script>
+<script type="module" src="app.js?v=6"></script>
 </body>
 </html>
