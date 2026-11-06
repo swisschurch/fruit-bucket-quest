@@ -122,8 +122,8 @@ h1,h2,h3,.disp{font-family:var(--f-display);font-weight:600;margin:0;text-wrap:b
 .feed-item .meta{color:var(--soft);font-size:.85em}
 .feed-item:nth-child(n+4){opacity:.7}
 @keyframes feedIn{from{transform:translateX(30px);opacity:0}}
-.teams{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:max(8px,.8vw);align-items:end}
-.team{border-radius:18px;padding:max(8px,.7vw);display:grid;gap:.6vh;position:relative;transition:box-shadow .4s,background .4s}
+.teams{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:max(8px,.8vw);align-items:stretch}
+.team{border-radius:18px;padding:max(8px,.7vw);display:flex;flex-direction:column;gap:.6vh;position:relative;transition:box-shadow .4s,background .4s}
 .team.done{background:rgba(120,86,10,.38);box-shadow:0 0 0 3px var(--gold),0 10px 40px rgba(242,182,50,.5)}
 .team-head{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
 .team-head h2{font-size:clamp(15px,1.4vw,28px);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 6px rgba(0,0,0,.4)}
@@ -137,7 +137,7 @@ h1,h2,h3,.disp{font-family:var(--f-display);font-weight:600;margin:0;text-wrap:b
 .slot.new svg{animation:slotIn .7s cubic-bezier(.2,1.6,.4,1)}
 @keyframes slotIn{0%{transform:scale(0) translateY(-40%)}100%{transform:none}}
 .over{font-size:clamp(11px,.85vw,15px);color:var(--wood-deep);background:rgba(251,233,192,.9);border-radius:8px;padding:2px 8px;justify-self:start;font-family:var(--f-display)}
-.zones{display:grid;gap:2px;font-size:clamp(10px,.75vw,14px)}
+.zones{display:grid;gap:2px;font-size:clamp(10px,.75vw,14px);margin-top:auto}
 .zone{display:grid;grid-template-columns:4.2em 1fr 2em;align-items:center;gap:6px}
 .zone span:first-child{color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .zone .bar{height:.6em;background:var(--track)}
@@ -388,7 +388,7 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
 <div class="demo-flag" id="demo-flag" hidden>Demo mode · saved in this browser only</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="config.js?v=6"></script>
-<script type="module" src="app.js?v=6"></script>
+<script src="config.js?v=7"></script>
+<script type="module" src="app.js?v=7"></script>
 </body>
 </html>

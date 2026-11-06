@@ -16,6 +16,8 @@ const DEFAULT_TEAMS = [
   { name: "YG T4", zones: CELLS4 },
 ];
 const GAME_VERSION = 2;
+// Big-screen picnic art: image size and the y of the characters' feet
+const BG = { w: 1710, h: 1160, feet: 735 };
 const DEFAULT_GAME = {
   v: GAME_VERSION,
   title: "Zurich Fruit Bucket Quest",
@@ -382,6 +384,21 @@ function startScreen() {
     },
   });
 
+  // Keep the picnic characters standing just above the team boards on any screen shape.
+  function fitBg() {
+    const bg = $(".scr-bg"), boards = $("#s-teams");
+    if (!bg || !boards) return;
+    const W = innerWidth, H = innerHeight;
+    const line = boards.getBoundingClientRect().top - H * 0.005;
+    const scale = Math.max(W / BG.w, line / BG.feet, H / BG.h);
+    const w = BG.w * scale, h = BG.h * scale;
+    let y = line - BG.feet * scale;
+    y = Math.min(0, Math.max(H - h, y));
+    bg.style.backgroundSize = `${w}px ${h}px, auto, auto, auto`;
+    bg.style.backgroundPosition = `${(W - w) / 2}px ${y}px, 0 0, 0 0, 0 0`;
+  }
+  addEventListener("resize", fitBg);
+
   function draw() {
     writeSummary(game, stats);
     document.title = game.title;
@@ -421,6 +438,7 @@ function startScreen() {
       if (prev && before < q && n >= q) celebrate(t.name);
     });
     prev = Object.fromEntries(game.teams.map((t) => [t.id, stats.teams[t.id].total]));
+    fitBg();
 
     const nameOf = Object.fromEntries(game.teams.map((t) => [t.id, t.name]));
     $("#s-feed").innerHTML = stats.recent.slice(0, 4).map((r) => `
