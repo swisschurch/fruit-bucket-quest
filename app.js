@@ -1,13 +1,25 @@
 // Zurich Fruit Bucket Quest — participant (#) · big screen (#screen) · host (#admin)
 const CFG = window.HARVEST_CONFIG || {};
 const FB_VER = "10.12.2";
-const TEAM_IDS = ["t1", "t2", "t3", "t4", "t5", "t6"];
+const TEAM_IDS = ["t1", "t2", "t3", "t4", "t5", "t6", "t7"];
 const ZONE_IDS = ["z1", "z2", "z3", "z4"];
 
+// Same structure as the church org chart (Fruit Consultation): each team has its own cells (1-4).
+const CELLS4 = ["Cell 1", "Cell 2", "Cell 3", "Cell 4"];
+const DEFAULT_TEAMS = [
+  { name: "TH", zones: ["Theology"] },
+  { name: "MG", zones: ["Cell 1", "Cell 2"] },
+  { name: "WG", zones: CELLS4 },
+  { name: "YG T1", zones: CELLS4 },
+  { name: "YG T2", zones: CELLS4 },
+  { name: "YG T3", zones: CELLS4 },
+  { name: "YG T4", zones: CELLS4 },
+];
+const GAME_VERSION = 2;
 const DEFAULT_GAME = {
+  v: GAME_VERSION,
   title: "Zurich Fruit Bucket Quest",
-  zones: ["Zone 1", "Zone 2", "Zone 3", "Zone 4"],
-  teams: TEAM_IDS.map((id, i) => ({ id, name: `Team ${i + 1}`, quota: 60 })),
+  teams: TEAM_IDS.map((id, i) => ({ id, name: DEFAULT_TEAMS[i].name, quota: 60, zones: [...DEFAULT_TEAMS[i].zones] })),
 };
 
 // ---------- helpers ----------
@@ -29,14 +41,18 @@ export function maskName(n) {
 
 function normalizeGame(g) {
   g = g || {};
-  const zones = ZONE_IDS.map((_, i) => clean(g.zones?.[i]) || DEFAULT_GAME.zones[i]);
+  const current = g.v === GAME_VERSION; // older saved settings (6 teams, shared zones) fall back to the new defaults
   const teams = TEAM_IDS.map((id, i) => {
-    const t = (g.teams || []).find((x) => x && x.id === id) || g.teams?.[i] || {};
+    const d = DEFAULT_GAME.teams[i];
+    const t = current ? (g.teams || []).find((x) => x && x.id === id) || {} : {};
     const q = Math.round(Number(t.quota));
-    return { id, name: clean(t.name) || DEFAULT_GAME.teams[i].name, quota: q > 0 && q <= 999 ? q : 60 };
+    const zones = (Array.isArray(t.zones) ? t.zones : []).map((z) => clean(z).slice(0, 12)).filter(Boolean).slice(0, ZONE_IDS.length);
+    return { id, name: clean(t.name) || d.name, quota: q > 0 && q <= 999 ? q : d.quota, zones: zones.length ? zones : [...d.zones] };
   });
-  return { title: String(g.title ?? "").replace(/\s+/g, " ").trim().slice(0, 40) || DEFAULT_GAME.title, zones, teams };
+  return { v: GAME_VERSION, title: String(g.title ?? "").replace(/\s+/g, " ").trim().slice(0, 40) || DEFAULT_GAME.title, teams };
 }
+const teamOf = (game, id) => game.teams.find((t) => t.id === id);
+const zoneName = (game, teamId, zoneId) => teamOf(game, teamId)?.zones[ZONE_IDS.indexOf(zoneId)] || "";
 
 const personKey = (team, zone, name) => `${team}|${zone}|${clean(name)}`;
 
@@ -195,7 +211,11 @@ function startJoin() {
 
   function renderSetup() {
     $("#j-teams").innerHTML = game.teams.map((t) => `<button type="button" data-team="${t.id}" aria-pressed="${draft.team === t.id}">${esc(t.name)}</button>`).join("");
-    $("#j-zones").innerHTML = game.zones.map((z, i) => `<button type="button" data-zone="${ZONE_IDS[i]}" aria-pressed="${draft.zone === ZONE_IDS[i]}">${esc(z)}</button>`).join("");
+    const team = teamOf(game, draft.team);
+    const zones = team ? team.zones : [];
+    if (team && !(ZONE_IDS.indexOf(draft.zone) >= 0 && ZONE_IDS.indexOf(draft.zone) < zones.length)) draft.zone = zones.length === 1 ? ZONE_IDS[0] : undefined;
+    $("#j-zone-step").hidden = !team;
+    $("#j-zones").innerHTML = zones.map((z, i) => `<button type="button" data-zone="${ZONE_IDS[i]}" aria-pressed="${draft.zone === ZONE_IDS[i]}">${esc(z)}</button>`).join("");
     $("#j-start").disabled = !(draft.team && draft.zone && clean($("#j-name").value));
   }
   $("#j-teams").addEventListener("click", (e) => { const b = e.target.closest("[data-team]"); if (b) { draft.team = b.dataset.team; renderSetup(); } });
@@ -221,10 +241,10 @@ function startJoin() {
 
   function render() {
     if (!profile) return;
-    const team = game.teams.find((t) => t.id === profile.team) || game.teams[0];
-    const zi = ZONE_IDS.indexOf(profile.zone);
+    const team = teamOf(game, profile.team) || game.teams[0];
     $("#j-who").textContent = profile.name;
-    $("#j-where").textContent = `${team.name} · ${game.zones[zi] || ""}`;
+    $("#j-where").textContent = `${team.name} · ${zoneName(game, team.id, profile.zone)}`;
+    $("#j-all-sub").textContent = `All ${game.teams.length} teams`;
     $("#j-team-label").textContent = team.name;
     document.title = game.title;
     document.querySelector(".j-brand h1").textContent = game.title;
@@ -372,7 +392,7 @@ function startScreen() {
     const ranked = [...game.teams].sort((a, b) => stats.teams[b.id].total / b.quota - stats.teams[a.id].total / a.quota);
     const rankOf = Object.fromEntries(ranked.map((t, i) => [t.id, i + 1]));
     const box = $("#s-teams");
-    if (box.children.length !== 6) box.innerHTML = game.teams.map((t) => `<article class="team glass" data-id="${t.id}"></article>`).join("");
+    if (box.children.length !== game.teams.length) box.innerHTML = game.teams.map((t) => `<article class="team glass" data-id="${t.id}"></article>`).join("");
 
     game.teams.forEach((t) => {
       const el = box.querySelector(`[data-id="${t.id}"]`);
@@ -383,9 +403,9 @@ function startScreen() {
       const filled = Math.min(n, q);
       const slots = Array.from({ length: q }, (_, i) =>
         i < filled ? `<div class="slot${i >= before && prev ? " new" : ""}">${svg("i-basket")}</div>` : `<div class="slot empty"></div>`).join("");
-      const zones = game.zones.map((z, i) => {
+      const zones = t.zones.map((z, i) => {
         const v = T.zones[ZONE_IDS[i]];
-        const max = Math.max(1, ...Object.values(T.zones));
+        const max = Math.max(1, ...ZONE_IDS.slice(0, t.zones.length).map((k) => T.zones[k]));
         return `<div class="zone"><span>${esc(z)}</span><div class="bar"><i style="width:${(v / max) * 100}%"></i></div><span class="num">${v}</span></div>`;
       }).join("");
       el.classList.toggle("done", n >= q);
@@ -406,7 +426,7 @@ function startScreen() {
     $("#s-feed").innerHTML = stats.recent.slice(0, 4).map((r) => `
       <div class="feed-item glass" data-k="${esc(r.id)}">${svg("i-basket")}
         <div><div><span class="who">${esc(r.harvester)}</span> added a bucket</div>
-        <div class="meta">${esc(nameOf[r.team] || "")} · ${esc(game.zones[ZONE_IDS.indexOf(r.zone)] || "")} · ${esc(r.masked)}</div></div></div>`).join("");
+        <div class="meta">${esc(nameOf[r.team] || "")} · ${esc(zoneName(game, r.team, r.zone))} · ${esc(r.masked)}</div></div></div>`).join("");
   }
 
   function flyApple(card) {
@@ -474,21 +494,20 @@ function startAdmin() {
 
   function fillForm() {
     $("#a-title").value = game.title;
-    $("#a-teams").innerHTML = game.teams.map((t, i) => `
+    $("#a-teams").innerHTML = `<div class="team-edit head"><span></span><span>Team</span><span>Quota</span><span>Cells (comma-separated, up to 4)</span></div>` +
+      game.teams.map((t, i) => `
       <div class="team-edit"><b>${i + 1}</b>
         <input id="a-tn-${t.id}" value="${esc(t.name)}" maxlength="20" aria-label="Team ${i + 1} name">
-        <input id="a-tq-${t.id}" type="number" min="1" max="999" value="${t.quota}" aria-label="Team ${i + 1} quota"></div>`).join("");
-    $("#a-zones").innerHTML = game.zones.map((z, i) => `
-      <div class="team-edit" style="grid-template-columns:2.4em 1fr"><b>${i + 1}</b>
-        <input id="a-zn-${i}" value="${esc(z)}" maxlength="12" aria-label="Zone ${i + 1} name"></div>`).join("");
+        <input id="a-tq-${t.id}" type="number" min="1" max="999" value="${t.quota}" aria-label="Team ${i + 1} quota">
+        <input id="a-tz-${t.id}" value="${esc(t.zones.join(", "))}" aria-label="Team ${i + 1} cells"></div>`).join("");
   }
   $("#a-form").addEventListener("input", () => (formDirty = true));
   $("#a-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const g = normalizeGame({
       title: $("#a-title").value,
-      zones: ZONE_IDS.map((_, i) => $(`#a-zn-${i}`).value),
-      teams: TEAM_IDS.map((id) => ({ id, name: $(`#a-tn-${id}`).value, quota: $(`#a-tq-${id}`).value })),
+      v: GAME_VERSION,
+      teams: TEAM_IDS.map((id) => ({ id, name: $(`#a-tn-${id}`).value, quota: $(`#a-tq-${id}`).value, zones: $(`#a-tz-${id}`).value.split(",") })),
     });
     try { await backend.saveGame(g); formDirty = false; toast("Settings saved"); }
     catch (err) { console.error(err); toast("Couldn't save. Check that you're signed in as the host.", true); }
@@ -499,7 +518,7 @@ function startAdmin() {
     $("#a-count").textContent = `${baskets.length}`;
     $("#a-rows").innerHTML = baskets.map((b) => `
       <tr><td class="num">${new Date(b.ts).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</td>
-      <td>${esc(tn[b.team] || b.team)}</td><td>${esc(game.zones[ZONE_IDS.indexOf(b.zone)] || b.zone)}</td>
+      <td>${esc(tn[b.team] || b.team)}</td><td>${esc(zoneName(game, b.team, b.zone) || b.zone)}</td>
       <td>${esc(b.harvester)}</td><td>${esc(b.basket)}</td><td>${esc(b.relation)}</td>
       <td><button data-del="${esc(b.id)}">Delete</button></td></tr>`).join("") || `<tr><td colspan="7" class="muted">No buckets yet.</td></tr>`;
   }
@@ -512,7 +531,7 @@ function startAdmin() {
 
   $("#a-csv").onclick = () => {
     const tn = Object.fromEntries(game.teams.map((t) => [t.id, t.name]));
-    const rows = [["Time", "Team", "Zone", "Harvester", "Bucket name", "Relationship"], ...baskets.map((b) => [new Date(b.ts).toLocaleString("en-GB"), tn[b.team], game.zones[ZONE_IDS.indexOf(b.zone)], b.harvester, b.basket, b.relation])];
+    const rows = [["Time", "Team", "Cell", "Harvester", "Bucket name", "Relationship"], ...baskets.map((b) => [new Date(b.ts).toLocaleString("en-GB"), tn[b.team], zoneName(game, b.team, b.zone), b.harvester, b.basket, b.relation])];
     const csv = "﻿" + rows.map((r) => r.map((c) => `"${String(c ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
@@ -533,7 +552,8 @@ function startAdmin() {
     const rels = ["Friend", "Family", "Coworker", "Neighbor", "Classmate"];
     const pick = (a) => a[Math.floor(Math.random() * a.length)];
     for (let i = 0; i < 30; i++) {
-      await backend.addBasket({ team: pick(TEAM_IDS), zone: pick(ZONE_IDS), harvester: "Sample " + pick(names), basket: pick(fams) + " " + pick(gives), relation: pick(rels) });
+      const t = pick(game.teams);
+      await backend.addBasket({ team: t.id, zone: ZONE_IDS[Math.floor(Math.random() * t.zones.length)], harvester: "Sample " + pick(names), basket: pick(fams) + " " + pick(gives), relation: pick(rels) });
     }
     toast("Added 30 sample buckets");
   };
