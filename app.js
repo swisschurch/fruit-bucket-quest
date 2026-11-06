@@ -16,8 +16,8 @@ const DEFAULT_TEAMS = [
   { name: "YG T4", zones: CELLS4 },
 ];
 const GAME_VERSION = 2;
-// Big-screen picnic art: image size and the y of the characters' feet
-const BG = { w: 1710, h: 1160, feet: 735 };
+// Big-screen Tree of Life art: image size and the y where the tree's roots meet the ground
+const BG = { w: 1408, h: 768, feet: 610 };
 const DEFAULT_GAME = {
   v: GAME_VERSION,
   title: "Zurich Fruit Bucket Quest",
@@ -384,7 +384,7 @@ function startScreen() {
     },
   });
 
-  // Keep the picnic characters standing just above the team boards on any screen shape.
+  // Keep the tree's roots just above the team boards on any screen shape.
   function fitBg() {
     const bg = $(".scr-bg"), boards = $("#s-teams");
     if (!bg || !boards) return;
@@ -394,8 +394,8 @@ function startScreen() {
     const w = BG.w * scale, h = BG.h * scale;
     let y = line - BG.feet * scale;
     y = Math.min(0, Math.max(H - h, y));
-    bg.style.backgroundSize = `${w}px ${h}px, auto, auto, auto`;
-    bg.style.backgroundPosition = `${(W - w) / 2}px ${y}px, 0 0, 0 0, 0 0`;
+    bg.style.backgroundSize = `${w}px ${h}px, auto`;
+    bg.style.backgroundPosition = `${(W - w) / 2}px ${y}px, 0 0`;
   }
   addEventListener("resize", fitBg);
 

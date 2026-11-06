@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700&family=Gowun+Dodum&display=swap">
 <style>
-/* Layout: big screen = seven team bucket boards over the apple-orchard picnic; phone = picnic banner + one column of cards */
+/* Layout: big screen = seven team bucket boards over the alpine Tree of Life; phone = tree banner + one column of cards */
 :root{
   --leaf:#3f7a3a; --leaf-deep:#22472a; --apple:#c8283a; --apple-deep:#8c1525;
   --cream:#fff8ef; --paper:#fffdf9; --blush:#f4b5c4; --pink:#e07a98;
@@ -53,7 +53,7 @@ h1,h2,h3,.disp{font-family:var(--f-display);font-weight:600;margin:0;text-wrap:b
 #view-join{max-width:520px;margin:0 auto;padding-block:16px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:14px}
 .j-banner{margin:-16px calc(-1 * max(16px,env(safe-area-inset-left,0px))) 0;position:relative}
 .j-banner img{display:block;width:100%;aspect-ratio:2.2/1;object-fit:cover;object-position:50% 45%}
-.j-banner::after{content:"";display:block;height:14px;background:var(--gingham)}
+.j-banner::after{content:"";display:block;height:10px;background:linear-gradient(90deg,#4f8a3f,#7fb35a,#4f8a3f)}
 @media (min-width:521px){.j-banner{margin:0;border-radius:20px;overflow:hidden}}
 .j-brand{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .j-brand h1{font-size:24px;color:var(--leaf-deep)}
@@ -97,8 +97,8 @@ h1,h2,h3,.disp{font-family:var(--f-display);font-weight:600;margin:0;text-wrap:b
 .drop-apple{position:fixed;z-index:70;width:34px;height:34px;pointer-events:none}
 
 /* ---------- big screen: translucent glass consoles over the art ---------- */
-#view-screen{--glass:rgba(44,26,22,.40);--glass-strong:rgba(44,26,22,.55);--glass-line:rgba(255,255,255,.32);--soft:rgba(255,255,255,.78);--track:rgba(255,255,255,.18);position:relative;height:100%;min-height:100vh;overflow:hidden;color:#fff;background:#7fb0de}
-.scr-bg{position:absolute;inset:0;background:url(assets/picnic.jpg?v=6) 50% -4.5vw/100% auto no-repeat,repeating-linear-gradient(0deg,rgba(214,48,62,.6) 0 3vw,transparent 3vw 6vw),repeating-linear-gradient(90deg,rgba(214,48,62,.6) 0 3vw,transparent 3vw 6vw),#f3e6e2}
+#view-screen{--glass:rgba(22,34,20,.36);--glass-strong:rgba(22,34,20,.52);--glass-line:rgba(255,255,255,.32);--soft:rgba(255,255,255,.78);--track:rgba(255,255,255,.18);position:relative;height:100%;min-height:100vh;overflow:hidden;color:#fff;background:#7fb0de}
+.scr-bg{position:absolute;inset:0;background:url(assets/tree.jpg?v=8) 50% 0/cover no-repeat,#7fb0de}
 .scr-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(25,45,70,.38) 0%,rgba(25,45,70,0) 22%,rgba(60,20,20,0) 70%,rgba(60,20,20,.22) 100%)}
 .glass,.team,.feed-item,.scr-total,.scr-qr{background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(7px) saturate(1.2);backdrop-filter:blur(7px) saturate(1.2);box-shadow:0 8px 30px rgba(0,0,0,.18)}
 .scr-wrap{position:relative;height:100%;min-height:100vh;display:grid;grid-template-rows:auto 1fr auto;padding-block:max(1.6vh,12px);padding-left:max(16px,1.6vw,env(safe-area-inset-left,0px));padding-right:max(16px,1.6vw,env(safe-area-inset-right,0px));gap:1.2vh}
@@ -115,7 +115,7 @@ h1,h2,h3,.disp{font-family:var(--f-display);font-weight:600;margin:0;text-wrap:b
 .scr-qr p{margin:0;font-size:clamp(12px,.9vw,16px);max-width:12em;color:var(--soft)}
 .scr-qr b{font-family:var(--f-display);font-weight:600;font-size:clamp(15px,1.2vw,22px);display:block;color:#fff}
 .scr-mid{position:relative;min-height:0;overflow:hidden}
-.feed{position:absolute;right:0;top:0;width:min(26vw,380px);display:grid;gap:6px}
+.feed{position:absolute;left:0;top:0;width:min(26vw,380px);display:grid;gap:6px}
 .feed-item{border-radius:14px;padding:6px 12px;display:flex;align-items:center;gap:10px;animation:feedIn .5s ease-out;font-size:clamp(12px,.9vw,17px)}
 .feed-item svg{width:1.9em;height:1.9em;flex:none}
 .feed-item .who{font-family:var(--f-display);font-weight:600}
@@ -226,7 +226,7 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
 
 <!-- ===== participant ===== -->
 <main id="view-join" class="view" hidden>
-  <div class="j-banner"><img src="assets/picnic-banner.jpg" alt="A picnic in an apple orchard with baskets and a squirrel"></div>
+  <div class="j-banner"><img src="assets/tree-banner.jpg" alt="The Tree of Life full of apples in an alpine meadow"></div>
   <div class="j-brand">
     <h1>Zurich Fruit Bucket Quest</h1>
     <span id="j-sync">Loading…</span>
@@ -244,7 +244,7 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
   <div id="j-main" hidden style="display:grid;gap:14px">
     <section class="card hero">
       <div class="hero-top">
-        <img src="assets/squirrel-picnic.jpg" alt="Squirrel harvester holding an apple">
+        <img src="assets/tree-tile.jpg" alt="The Tree of Life">
         <div class="hero-who">
           <div class="role">Harvester</div>
           <h2 id="j-who"></h2>
@@ -388,7 +388,7 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
 <div class="demo-flag" id="demo-flag" hidden>Demo mode · saved in this browser only</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="config.js?v=7"></script>
-<script type="module" src="app.js?v=7"></script>
+<script src="config.js?v=8"></script>
+<script type="module" src="app.js?v=8"></script>
 </body>
 </html>
