@@ -6,7 +6,7 @@
 <title>Zurich Fruit Bucket Quest</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700&family=Gowun+Dodum&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
 <style>
 /* Layout: big screen = seven team bucket boards over the alpine Tree of Life; phone = tree banner + one column of cards */
 :root{
@@ -15,8 +15,8 @@
   --wood:#a8743f; --wood-deep:#6e4721; --ink:#2f2924; --muted:#7a6d62; --line:#eadfd2;
   --gold:#f2b632; --sky:#e8f1fa; --sky-deep:#5b8fc7;
   --gingham:repeating-linear-gradient(0deg,rgba(214,48,62,.55) 0 8px,transparent 8px 16px),repeating-linear-gradient(90deg,rgba(214,48,62,.55) 0 8px,transparent 8px 16px),#fff;
-  --f-display:"Fredoka","Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
-  --f-body:"Nunito","Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-display:"Outfit","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-body:"Manrope","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   color-scheme:light;
 }
 *{box-sizing:border-box}
@@ -27,12 +27,12 @@ button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .num{font-variant-numeric:tabular-nums}
-h1,h2,h3,.disp{font-family:var(--f-display);font-weight:600;margin:0;text-wrap:balance;letter-spacing:.01em}
+h1,h2,h3,.disp{font-family:var(--f-display);font-weight:600;margin:0;text-wrap:balance;letter-spacing:-.01em}
 .view{min-height:100%}
 .demo-flag{position:fixed;right:calc(8px + env(safe-area-inset-right,0px));top:calc(8px + env(safe-area-inset-top,0px));z-index:50;background:var(--ink);color:var(--cream);font-size:12px;padding:4px 12px;border-radius:999px;opacity:.85;pointer-events:none}
 
 /* ---------- shared ---------- */
-.btn{border:0;border-radius:14px;padding:12px 18px;font-family:var(--f-display);font-size:18px;background:var(--apple);color:#fff;box-shadow:0 3px 0 var(--apple-deep);transition:transform .08s}
+.btn{border:0;border-radius:14px;padding:12px 18px;font-family:var(--f-display);font-weight:600;font-size:17px;letter-spacing:.01em;background:var(--apple);color:#fff;box-shadow:0 3px 0 var(--apple-deep);transition:transform .08s}
 .btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--apple-deep)}
 .btn:disabled{opacity:.5;cursor:default}
 .btn.ghost{background:var(--paper);color:var(--ink);box-shadow:0 2px 0 var(--line);border:1px solid var(--line)}
@@ -66,9 +66,21 @@ h1,h2,h3,.disp{font-family:var(--f-display);font-weight:600;margin:0;text-wrap:b
 .choice{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .choice.four{grid-template-columns:repeat(4,1fr)}
 #j-teams{grid-template-columns:repeat(4,1fr)}
-.choice button{border:2px solid var(--line);background:var(--cream);border-radius:14px;padding:12px 6px;font-family:var(--f-display);font-size:17px;min-width:0;overflow-wrap:anywhere}
+.choice button{border:2px solid var(--line);background:var(--cream);border-radius:14px;padding:12px 6px;font-family:var(--f-display);font-weight:500;font-size:16px;min-width:0;overflow-wrap:anywhere}
 .choice button[aria-pressed="true"]{border-color:var(--apple);background:#fde9ec;color:var(--apple-deep)}
 .hero{position:relative;overflow:hidden;background:linear-gradient(180deg,#eaf3e1,var(--paper));padding:0}
+/* participant view: white and green only (apple icons keep their fruit colour) */
+body:has(#view-join:not([hidden])){background:#fff}
+#view-join{--apple:#2f7d3a;--apple-deep:#1d5427;--pink:#3f8f45;--cream:#fff;--paper:#fff;--line:#dcebd7;--muted:#5e7663;--ink:#1f2d22}
+#view-join .card{border-color:var(--line);box-shadow:0 2px 10px rgba(31,84,39,.06)}
+#view-join .hero{background:linear-gradient(180deg,#eef7ea,#fff)}
+#view-join .hero-top img{box-shadow:0 6px 16px rgba(31,84,39,.18)}
+#view-join .choice button[aria-pressed="true"]{background:#e9f5e5;border-color:var(--apple);color:var(--apple-deep)}
+#view-join .bar{background:#e9f1e6}
+#view-join .bar>i,#view-join .bar.done>i{background:linear-gradient(90deg,#2f7d3a,#5ea84c)}
+#view-join .j-brand h1{color:var(--apple-deep)}
+#view-join .field input:focus{border-color:var(--apple)}
+#view-join .link{color:var(--apple)}
 .hero-top{display:grid;grid-template-columns:118px 1fr;gap:14px;align-items:end;padding:16px 16px 0}
 .hero-top img{width:118px;height:118px;object-fit:cover;object-position:50% 40%;border-radius:22px;border:3px solid #fff;box-shadow:0 6px 16px rgba(140,21,37,.15)}
 .hero-who{min-width:0;padding-bottom:4px}
@@ -138,7 +150,7 @@ h1,h2,h3,.disp{font-family:var(--f-display);font-weight:600;margin:0;text-wrap:b
 @keyframes slotIn{0%{transform:scale(0) translateY(-40%)}100%{transform:none}}
 .over{font-size:clamp(11px,.85vw,15px);color:var(--wood-deep);background:rgba(251,233,192,.9);border-radius:8px;padding:2px 8px;justify-self:start;font-family:var(--f-display)}
 .zones{display:grid;gap:2px;font-size:clamp(10px,.75vw,14px);margin-top:auto}
-.zone{display:grid;grid-template-columns:4.2em 1fr 2em;align-items:center;gap:6px}
+.zone{display:grid;grid-template-columns:5em 1fr 1.8em;align-items:center;gap:6px}
 .zone span:first-child{color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .zone .bar{height:.6em;background:var(--track)}
 .zone .bar>i{background:#9ad07f}
@@ -388,7 +400,7 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
 <div class="demo-flag" id="demo-flag" hidden>Demo mode · saved in this browser only</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="config.js?v=8"></script>
-<script type="module" src="app.js?v=8"></script>
+<script src="config.js?v=9"></script>
+<script type="module" src="app.js?v=9"></script>
 </body>
 </html>
