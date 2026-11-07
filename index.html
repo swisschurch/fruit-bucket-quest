@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
 <style>
-/* Layout: big screen = seven team bucket boards over the alpine Tree of Life; phone = tree banner + one column of cards */
+/* Layout: big screen = eight team bucket boards over the alpine Tree of Life; phone = tree banner + one column of cards */
 :root{
   --leaf:#3f7a3a; --leaf-deep:#22472a; --apple:#c8283a; --apple-deep:#8c1525;
   --cream:#fff8ef; --paper:#fffdf9; --blush:#f4b5c4; --pink:#e07a98;
@@ -134,7 +134,7 @@ body:has(#view-join:not([hidden])){background:#fff}
 .feed-item .meta{color:var(--soft);font-size:.85em}
 .feed-item:nth-child(n+4){opacity:.7}
 @keyframes feedIn{from{transform:translateX(30px);opacity:0}}
-.teams{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:max(8px,.8vw);align-items:stretch}
+.teams{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:max(8px,.8vw);align-items:stretch}
 .team{border-radius:18px;padding:max(8px,.7vw);display:flex;flex-direction:column;gap:.6vh;position:relative;transition:box-shadow .4s,background .4s}
 .team.done{background:rgba(120,86,10,.38);box-shadow:0 0 0 3px var(--gold),0 10px 40px rgba(242,182,50,.5)}
 .team-head{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
@@ -278,7 +278,7 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
         <h3>Everyone</h3>
         <div class="big num"><span id="j-all-n">0</span> <small>/ <span id="j-all-q">0</span></small></div>
         <div class="bar" id="j-all-bar"><i></i></div>
-        <div class="sub" id="j-all-sub">All 7 teams</div>
+        <div class="sub" id="j-all-sub">All 8 teams</div>
       </section>
     </div>
 
@@ -400,7 +400,7 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
 <div class="demo-flag" id="demo-flag" hidden>Demo mode · saved in this browser only</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="config.js?v=9"></script>
-<script type="module" src="app.js?v=9"></script>
+<script src="config.js?v=10"></script>
+<script type="module" src="app.js?v=10"></script>
 </body>
 </html>

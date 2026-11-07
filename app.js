@@ -1,10 +1,10 @@
 // Zurich Fruit Bucket Quest — participant (#) · big screen (#screen) · host (#admin)
 const CFG = window.HARVEST_CONFIG || {};
 const FB_VER = "10.12.2";
-const TEAM_IDS = ["t1", "t2", "t3", "t4", "t5", "t6", "t7"];
+const TEAM_IDS = ["t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8"];
 const ZONE_IDS = ["z1", "z2", "z3", "z4"];
 
-// Same structure as the church org chart (Fruit Consultation): each team has its own cells (1-4).
+// Same structure as the church org chart (Fruit Consultation): each team has its own cells (1-4). Geneva joined as an 8th team (11 people).
 const CELLS4 = ["Cell 1", "Cell 2", "Cell 3", "Cell 4"];
 const DEFAULT_TEAMS = [
   { name: "TH", zones: ["Theology"] },
@@ -14,6 +14,7 @@ const DEFAULT_TEAMS = [
   { name: "YG T2", zones: CELLS4 },
   { name: "YG T3", zones: CELLS4 },
   { name: "YG T4", zones: CELLS4 },
+  { name: "Geneva", zones: ["Geneva"], quota: 11 },
 ];
 const GAME_VERSION = 2;
 // Big-screen Tree of Life art: image size and the y where the tree's roots meet the ground
@@ -21,7 +22,7 @@ const BG = { w: 1408, h: 768, feet: 610 };
 const DEFAULT_GAME = {
   v: GAME_VERSION,
   title: "Zurich Fruit Bucket Quest",
-  teams: TEAM_IDS.map((id, i) => ({ id, name: DEFAULT_TEAMS[i].name, quota: 60, zones: [...DEFAULT_TEAMS[i].zones] })),
+  teams: TEAM_IDS.map((id, i) => ({ id, name: DEFAULT_TEAMS[i].name, quota: DEFAULT_TEAMS[i].quota || 60, zones: [...DEFAULT_TEAMS[i].zones] })),
 };
 
 // ---------- helpers ----------
