@@ -2,18 +2,19 @@
 const CFG = window.HARVEST_CONFIG || {};
 const FB_VER = "10.12.2";
 const TEAM_IDS = ["t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8"];
-const ZONE_IDS = ["z1", "z2", "z3", "z4"];
+const ZONE_IDS = ["z1", "z2", "z3", "z4", "z5"];
 
-// Same structure as the church org chart (Fruit Consultation): each team has its own cells (1-4). Geneva joined as an 8th team (11 people).
+// Same structure as the church org chart (Fruit Consultation): each team has its own cells (1-5). Geneva joined as an 8th team (11 people).
 const CELLS4 = ["Cell 1", "Cell 2", "Cell 3", "Cell 4"];
+const YG_CELLS = [...CELLS4, "WOD"]; // youth teams: four cells plus WOD
 const DEFAULT_TEAMS = [
   { name: "TH", zones: ["Theology"] },
   { name: "MG", zones: ["Cell 1", "Cell 2"] },
   { name: "WG", zones: CELLS4 },
-  { name: "YG T1", zones: CELLS4 },
-  { name: "YG T2", zones: CELLS4 },
-  { name: "YG T3", zones: CELLS4 },
-  { name: "YG T4", zones: CELLS4 },
+  { name: "YG T1", zones: YG_CELLS },
+  { name: "YG T2", zones: YG_CELLS },
+  { name: "YG T3", zones: YG_CELLS },
+  { name: "YG T4", zones: YG_CELLS },
   { name: "Geneva", zones: ["Geneva"], quota: 11 },
 ];
 const GAME_VERSION = 2;
@@ -218,6 +219,7 @@ function startJoin() {
     const zones = team ? team.zones : [];
     if (team && !(ZONE_IDS.indexOf(draft.zone) >= 0 && ZONE_IDS.indexOf(draft.zone) < zones.length)) draft.zone = zones.length === 1 ? ZONE_IDS[0] : undefined;
     $("#j-zone-step").hidden = !team;
+    $("#j-zones").style.gridTemplateColumns = zones.length === 5 ? "repeat(3,1fr)" : "";
     $("#j-zones").innerHTML = zones.map((z, i) => `<button type="button" data-zone="${ZONE_IDS[i]}" aria-pressed="${draft.zone === ZONE_IDS[i]}">${esc(z)}</button>`).join("");
     $("#j-start").disabled = !(draft.team && draft.zone && clean($("#j-name").value));
   }
@@ -513,7 +515,7 @@ function startAdmin() {
 
   function fillForm() {
     $("#a-title").value = game.title;
-    $("#a-teams").innerHTML = `<div class="team-edit head"><span></span><span>Team</span><span>Quota</span><span>Cells (comma-separated, up to 4)</span></div>` +
+    $("#a-teams").innerHTML = `<div class="team-edit head"><span></span><span>Team</span><span>Quota</span><span>Cells (comma-separated, up to 5)</span></div>` +
       game.teams.map((t, i) => `
       <div class="team-edit"><b>${i + 1}</b>
         <input id="a-tn-${t.id}" value="${esc(t.name)}" maxlength="20" aria-label="Team ${i + 1} name">

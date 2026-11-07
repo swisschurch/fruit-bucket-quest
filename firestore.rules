@@ -27,7 +27,7 @@ service cloud.firestore {
       allow create: if request.resource.data.keys().hasOnly(['team', 'zone', 'harvester', 'basket', 'relation', 'ts'])
         && request.resource.data.keys().hasAll(['team', 'zone', 'harvester', 'basket', 'relation', 'ts'])
         && request.resource.data.team in ['t1', 't2', 't3', 't4', 't5', 't6', 't7', 't8']
-        && request.resource.data.zone in ['z1', 'z2', 'z3', 'z4']
+        && request.resource.data.zone in ['z1', 'z2', 'z3', 'z4', 'z5']
         && okText(request.resource.data.harvester)
         && okText(request.resource.data.basket)
         && okText(request.resource.data.relation)
