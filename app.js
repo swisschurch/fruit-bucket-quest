@@ -282,6 +282,11 @@ function startJoin() {
     const list = myLocal().slice().reverse();
     $("#j-minelist").innerHTML = list.map((m) => `<li><span>${esc(m.basket)}</span><span>${esc(m.relation)}</span></li>`).join("");
     $("#j-mine-empty").hidden = list.length > 0;
+    const elsewhere = my - list.length; // counted on the server but typed on another phone or browser
+    $("#j-mine-other").hidden = elsewhere <= 0;
+    $("#j-mine-other").textContent = elsewhere === 1
+      ? "+1 more bucket added from another phone or browser. Names are only listed on the device where they were typed."
+      : `+${elsewhere} more buckets added from another phone or browser. Names are only listed on the device where they were typed.`;
   }
 
   $("#j-form").addEventListener("submit", async (e) => {
