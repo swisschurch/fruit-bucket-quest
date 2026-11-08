@@ -18,6 +18,7 @@ const DEFAULT_TEAMS = [
   { name: "Geneva", zones: ["Geneva"], quota: 11 },
 ];
 const GAME_VERSION = 2;
+const FEED_MAX = 50; // how many recent buckets the big-screen feed keeps (scrollable)
 // Big-screen Tree of Life art: image size and the y where the tree's roots meet the ground
 const BG = { w: 1408, h: 768, feet: 610 };
 const DEFAULT_GAME = {
@@ -72,7 +73,7 @@ function computeStats(baskets) {
     T.zones[b.zone]++;
     const k = personKey(b.team, b.zone, b.harvester);
     stats.people[k] = (stats.people[k] || 0) + 1;
-    if (stats.recent.length < 8)
+    if (stats.recent.length < FEED_MAX)
       stats.recent.push({ id: b.id, team: b.team, zone: b.zone, harvester: clean(b.harvester), masked: maskName(b.basket), ts: b.ts || 0 });
   }
   return stats;
@@ -376,6 +377,7 @@ function startScreen() {
   drawQR($("#s-qr"), joinUrl(), 220);
   let game = normalizeGame(null), baskets = [], stats = computeStats([]);
   let prev = null; // previous per-team totals
+  const feedSeen = new Set(); // feed items already shown, so only new ones animate
   const writeSummary = makeSummaryWriter();
   $("#s-signin").onclick = () => backend.signIn().catch((e) => toast("Sign-in failed: " + (e.code || e.message), true));
 
@@ -444,10 +446,16 @@ function startScreen() {
     fitBg();
 
     const nameOf = Object.fromEntries(game.teams.map((t) => [t.id, t.name]));
-    $("#s-feed").innerHTML = stats.recent.slice(0, 4).map((r) => `
-      <div class="feed-item glass" data-k="${esc(r.id)}">${svg("i-basket")}
+    const feed = $("#s-feed");
+    const keepTop = feed.scrollTop; // don't jump back to the top while someone is scrolling
+    const firstDraw = !feedSeen.size;
+    const items = stats.recent.slice(0, FEED_MAX);
+    feed.innerHTML = items.map((r) => `
+      <div class="feed-item glass${!firstDraw && !feedSeen.has(r.id) ? " new" : ""}" data-k="${esc(r.id)}">${svg("i-basket")}
         <div><div><span class="who">${esc(r.harvester)}</span> added a bucket</div>
         <div class="meta">${esc(nameOf[r.team] || "")} · ${esc(zoneName(game, r.team, r.zone))} · ${esc(r.masked)}</div></div></div>`).join("");
+    items.forEach((r) => feedSeen.add(r.id));
+    feed.scrollTop = keepTop;
   }
 
   function flyApple(card) {

@@ -127,12 +127,13 @@ body:has(#view-join:not([hidden])){background:#fff}
 .scr-qr p{margin:0;font-size:clamp(12px,.9vw,16px);max-width:12em;color:var(--soft)}
 .scr-qr b{font-family:var(--f-display);font-weight:600;font-size:clamp(15px,1.2vw,22px);display:block;color:#fff}
 .scr-mid{position:relative;min-height:0;overflow:hidden}
-.feed{position:absolute;left:0;top:0;width:min(26vw,380px);display:grid;gap:6px}
-.feed-item{border-radius:14px;padding:6px 12px;display:flex;align-items:center;gap:10px;animation:feedIn .5s ease-out;font-size:clamp(12px,.9vw,17px)}
+.feed{position:absolute;left:0;top:0;width:min(26vw,380px);max-height:min(100%,17em);font-size:clamp(12px,.9vw,17px);display:grid;gap:6px;align-content:start;overflow-y:auto;-webkit-mask-image:linear-gradient(#000 82%,transparent);mask-image:linear-gradient(#000 82%,transparent);overscroll-behavior:contain;padding-right:6px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.45) transparent}
+.feed::-webkit-scrollbar{width:6px}.feed::-webkit-scrollbar-thumb{background:rgba(255,255,255,.45);border-radius:3px}
+.feed-item{border-radius:14px;padding:6px 12px;display:flex;align-items:center;gap:10px;font-size:1em}
+.feed-item.new{animation:feedIn .5s ease-out}
 .feed-item svg{width:1.9em;height:1.9em;flex:none}
 .feed-item .who{font-family:var(--f-display);font-weight:600}
 .feed-item .meta{color:var(--soft);font-size:.85em}
-.feed-item:nth-child(n+4){opacity:.7}
 @keyframes feedIn{from{transform:translateX(30px);opacity:0}}
 .teams{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:max(8px,.8vw);align-items:stretch}
 .team{border-radius:18px;padding:max(8px,.7vw);display:flex;flex-direction:column;gap:.6vh;position:relative;transition:box-shadow .4s,background .4s}
@@ -169,7 +170,7 @@ body:has(#view-join:not([hidden])){background:#fff}
 @keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
 @media (max-width:900px){
   .teams{grid-template-columns:repeat(4,minmax(0,1fr))}
-  .feed{position:static;width:auto}
+  .feed{position:static;width:auto;max-height:32vh}
   .scr-top{flex-wrap:wrap}
   .scr-qr{display:none}
 }
@@ -400,7 +401,7 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
 <div class="demo-flag" id="demo-flag" hidden>Demo mode · saved in this browser only</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="config.js?v=11"></script>
-<script type="module" src="app.js?v=11"></script>
+<script src="config.js?v=12"></script>
+<script type="module" src="app.js?v=12"></script>
 </body>
 </html>
