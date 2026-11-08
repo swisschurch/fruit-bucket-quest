@@ -348,6 +348,29 @@ function startJoin() {
     document.addEventListener("visibilitychange", () => { if (!document.hidden) poll(); });
   }
   if (profile) { $("#j-setup").hidden = true; }
+
+  // One-time restore link (#restore=...): puts names that were added from another device
+  // back into this phone's "My buckets" list. It never writes to the server or changes counts.
+  if (location.hash.startsWith("#restore=")) {
+    try {
+      const raw = location.hash.slice("#restore=".length).replace(/-/g, "+").replace(/_/g, "/");
+      const items = JSON.parse(decodeURIComponent(escape(atob(raw))));
+      let added = 0;
+      if (profile && Array.isArray(items)) {
+        for (const [basket, relation] of items) {
+          const b = clean(basket), r = clean(relation);
+          if (b && !myLocal().some((m) => m.basket === b)) {
+            mine.unshift({ team: profile.team, zone: profile.zone, name: profile.name, basket: b, relation: r, ts: 0 }); // shown as the oldest
+            added++;
+          }
+        }
+        store.set("harvest-mine", mine);
+      }
+      history.replaceState(null, "", location.pathname + location.search);
+      setTimeout(() => toast(profile ? (added ? `Added ${added} name${added > 1 ? "s" : ""} to My buckets` : "My buckets is already up to date") : "Join first, then open the link again", !profile), 400);
+      render();
+    } catch (e) { console.warn("restore", e); }
+  }
 }
 
 function setBar(sel, ratio) {
