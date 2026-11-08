@@ -8,7 +8,7 @@ const ZONE_IDS = ["z1", "z2", "z3", "z4", "z5"];
 const CELLS4 = ["Cell 1", "Cell 2", "Cell 3", "Cell 4"];
 const YG_CELLS = [...CELLS4, "WOD"]; // WG and youth teams: four cells plus WOD
 const DEFAULT_TEAMS = [
-  { name: "TH", zones: ["Theology"] },
+  { name: "TH", zones: ["Theology", "CWOD"] },
   { name: "MG", zones: ["Cell 1", "Cell 2", "WOD"] },
   { name: "WG", zones: YG_CELLS },
   { name: "YG T1", zones: YG_CELLS },
