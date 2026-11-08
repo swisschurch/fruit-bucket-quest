@@ -6,11 +6,11 @@ const ZONE_IDS = ["z1", "z2", "z3", "z4", "z5"];
 
 // Same structure as the church org chart (Fruit Consultation): each team has its own cells (1-5). Geneva joined as an 8th team (11 people).
 const CELLS4 = ["Cell 1", "Cell 2", "Cell 3", "Cell 4"];
-const YG_CELLS = [...CELLS4, "WOD"]; // youth teams: four cells plus WOD
+const YG_CELLS = [...CELLS4, "WOD"]; // WG and youth teams: four cells plus WOD
 const DEFAULT_TEAMS = [
   { name: "TH", zones: ["Theology"] },
-  { name: "MG", zones: ["Cell 1", "Cell 2"] },
-  { name: "WG", zones: CELLS4 },
+  { name: "MG", zones: ["Cell 1", "Cell 2", "WOD"] },
+  { name: "WG", zones: YG_CELLS },
   { name: "YG T1", zones: YG_CELLS },
   { name: "YG T2", zones: YG_CELLS },
   { name: "YG T3", zones: YG_CELLS },
