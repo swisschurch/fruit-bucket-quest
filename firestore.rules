@@ -23,7 +23,10 @@ service cloud.firestore {
 
     // Bucket records: participants can only add; only hosts can read the real names
     match /baskets/{basketId} {
-      allow read, update, delete: if isAdmin();
+      allow read, update: if isAdmin();
+      // The host can delete anything. A phone can delete a bucket only by its id, which only
+      // the phone that added it knows (participants can't list buckets, and ids are never published).
+      allow delete: if true;
       allow create: if request.resource.data.keys().hasOnly(['team', 'zone', 'harvester', 'basket', 'relation', 'ts'])
         && request.resource.data.keys().hasAll(['team', 'zone', 'harvester', 'basket', 'relation', 'ts'])
         && request.resource.data.team in ['t1', 't2', 't3', 't4', 't5', 't6', 't7', 't8']

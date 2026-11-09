@@ -119,7 +119,7 @@ function makeDemoBackend() {
     async init() {},
     onAuth(cb) { cb({ email: "Demo host" }); },
     async signIn() {}, async signOut() {},
-    async addBasket(b) { const s = load(); s.baskets.push({ ...b, id: Math.random().toString(36).slice(2, 10), ts: Date.now() }); save(s); },
+    async addBasket(b) { const s = load(); const id = Math.random().toString(36).slice(2, 10); s.baskets.push({ ...b, id, ts: Date.now() }); save(s); return id; },
     async fetchPublic() { const s = load(); return { game: normalizeGame(s.game), stats: computeStats(s.baskets) }; },
     watchPublic(cb) { return sub(() => { const s = load(); cb({ game: normalizeGame(s.game), stats: computeStats(s.baskets) }); }); },
     watchGame(cb) { return sub(() => cb(normalizeGame(load().game))); },
@@ -148,7 +148,7 @@ function makeFirebaseBackend(conf) {
     onAuth(cb) { au.onAuthStateChanged(auth, (u) => cb(u ? { email: u.email } : null)); },
     async signIn() { await au.signInWithPopup(auth, new au.GoogleAuthProvider()); },
     async signOut() { await au.signOut(auth); },
-    async addBasket(b) { await fs.addDoc(fs.collection(db, "baskets"), { ...b, ts: fs.serverTimestamp() }); },
+    async addBasket(b) { const ref = await fs.addDoc(fs.collection(db, "baskets"), { ...b, ts: fs.serverTimestamp() }); return ref.id; },
     async fetchPublic() {
       const s = await fs.getDoc(fs.doc(db, "public", "summary"));
       if (s.exists()) { const d = s.data(); return { game: normalizeGame(d.game), stats: d.stats || null }; }
@@ -189,7 +189,7 @@ function makeSummaryWriter() {
   let last = "", timer = null, pending = null;
   return (game, stats) => {
     if (backend.mode !== "firebase") return;
-    pending = { game, stats };
+    pending = { game, stats: { ...stats, recent: (stats.recent || []).map(({ id, ...r }) => r) } }; // ids stay private
     clearTimeout(timer);
     timer = setTimeout(async () => {
       const json = JSON.stringify(pending);
@@ -280,7 +280,9 @@ function startJoin() {
     setBar("#j-all-bar", all / goal);
 
     const list = myLocal().slice().reverse();
-    $("#j-minelist").innerHTML = list.map((m) => `<li><span>${esc(m.basket)}</span><span>${esc(m.relation)}</span></li>`).join("");
+    $("#j-minelist").innerHTML = list.map((m) => `<li><span class="mb">${esc(m.basket)}</span><span class="mr">${esc(m.relation)}</span>${
+      m.id ? `<button type="button" class="mine-del" data-del="${esc(m.id)}" aria-label="Delete the bucket for ${esc(m.basket)}">Delete</button>` : `<span class="mine-old">Host only</span>`}</li>`).join("");
+    $("#j-mine-old").hidden = !list.some((m) => !m.id);
     $("#j-mine-empty").hidden = list.length > 0;
     const elsewhere = my - list.length; // counted on the server but typed on another phone or browser
     $("#j-mine-other").hidden = elsewhere <= 0;
@@ -288,6 +290,36 @@ function startJoin() {
       ? "+1 more bucket added from another phone or browser. Names are only listed on the device where they were typed."
       : `+${elsewhere} more buckets added from another phone or browser. Names are only listed on the device where they were typed.`;
   }
+
+  $("#j-minelist").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-del]");
+    if (!b || b.disabled) return;
+    if (b.dataset.armed !== "1") { // first tap asks to confirm
+      b.dataset.armed = "1"; b.textContent = "Confirm"; b.classList.add("armed");
+      setTimeout(() => { if (b.isConnected) { b.dataset.armed = ""; b.textContent = "Delete"; b.classList.remove("armed"); } }, 3000);
+      return;
+    }
+    const id = b.dataset.del;
+    const m = mine.find((x) => x.id === id);
+    b.disabled = true; b.textContent = "Deleting…";
+    try {
+      await backend.deleteBasket(id);
+      mine = mine.filter((x) => x.id !== id);
+      store.set("harvest-mine", mine);
+      if (stats && m && !backend.live) { // show it right away until the next refresh
+        const dec = (o, k) => { if (o && o[k] > 0) o[k]--; };
+        dec(stats, "total"); const T = stats.teams?.[m.team]; dec(T, "total"); dec(T?.zones, m.zone);
+        dec(stats.people, personKey(m.team, m.zone, m.name));
+      }
+      lastMyCount = null;
+      toast(m ? `Removed the bucket for ${m.basket}` : "Bucket removed");
+      render();
+    } catch (err) {
+      console.error(err);
+      b.disabled = false; b.dataset.armed = ""; b.textContent = "Delete"; b.classList.remove("armed");
+      toast("Couldn't delete. Check your internet connection and try again.", true);
+    }
+  });
 
   $("#j-form").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -298,8 +330,8 @@ function startJoin() {
     const btn = $("#f-submit");
     btn.disabled = true; btn.textContent = "Adding…";
     try {
-      await backend.addBasket({ team: profile.team, zone: profile.zone, harvester: me, basket, relation });
-      mine.push({ team: profile.team, zone: profile.zone, name: me, basket, relation, ts: Date.now() });
+      const id = await backend.addBasket({ team: profile.team, zone: profile.zone, harvester: me, basket, relation });
+      mine.push({ id, team: profile.team, zone: profile.zone, name: me, basket, relation, ts: Date.now() });
       store.set("harvest-mine", mine);
       if (stats && !backend.live) { // show it right away until the next refresh
         stats.total++; const T = stats.teams[profile.team]; if (T) { T.total++; T.zones[profile.zone]++; }

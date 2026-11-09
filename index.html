@@ -103,8 +103,13 @@ body:has(#view-join:not([hidden])){background:#fff}
 .form h2{font-size:21px;margin-bottom:12px}
 .form form{display:grid;gap:12px}
 .mine-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
-.mine-list li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding:6px 0;font-size:15px}
-.mine-list li span:last-child{color:var(--muted);white-space:nowrap}
+.mine-list li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px;border-bottom:1px dashed var(--line);padding:6px 0;font-size:15px}
+.mine-list .mb{min-width:0;overflow-wrap:anywhere}
+.mine-list .mr{color:var(--muted);text-align:right;max-width:9.5em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mine-del{border:1.5px solid var(--line);background:#fff;color:var(--muted);border-radius:999px;padding:3px 11px;font-size:13px;font-weight:600;min-width:4.6em}
+.mine-del.armed{border-color:#c8283a;background:#fdecee;color:#a31d2e}
+.mine-del:disabled{opacity:.6}
+.mine-old{font-size:12px;color:var(--muted);min-width:4.6em;text-align:center}
 .mine h2{font-size:18px;margin-bottom:8px}
 .drop-apple{position:fixed;z-index:70;width:34px;height:34px;pointer-events:none}
 
@@ -298,6 +303,7 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
       <h2>My buckets</h2>
       <ul class="mine-list" id="j-minelist"></ul>
       <p class="muted" id="j-mine-empty">No buckets yet. Add your first one above.</p>
+      <p class="muted" id="j-mine-old" hidden style="margin-top:8px;font-size:13px">Buckets marked "Host only" were added before deleting was possible. Ask your host if one needs to be removed.</p>
       <p class="muted" id="j-mine-other" hidden style="margin-top:8px;font-size:13px"></p>
     </section>
   </div>
@@ -402,7 +408,7 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
 <div class="demo-flag" id="demo-flag" hidden>Demo mode · saved in this browser only</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="config.js?v=16"></script>
-<script type="module" src="app.js?v=16"></script>
+<script src="config.js?v=17"></script>
+<script type="module" src="app.js?v=17"></script>
 </body>
 </html>
