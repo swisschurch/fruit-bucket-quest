@@ -61,6 +61,15 @@ const zoneName = (game, teamId, zoneId) => teamOf(game, teamId)?.zones[ZONE_IDS.
 
 const personKey = (team, zone, name) => `${team}|${zone}|${clean(name)}`;
 
+// Lookup code for one bucket: a one-way scramble of team|cell|harvester|bucket|relationship.
+// The host's screen publishes code -> bucket id, so a phone that knows all five (because its
+// owner typed them) can find the id it needs to delete that bucket. No names are published.
+async function bucketCode(team, zone, harvester, basket, relation) {
+  const s = ["fbq1", team, zone, harvester, basket, relation].map((x) => clean(x).toLowerCase()).join("|");
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return [...new Uint8Array(buf)].slice(0, 12).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 function computeStats(baskets) {
   const stats = { total: 0, teams: {}, people: {}, recent: [] };
   TEAM_IDS.forEach((t) => (stats.teams[t] = { total: 0, zones: Object.fromEntries(ZONE_IDS.map((z) => [z, 0])) }));
@@ -126,6 +135,8 @@ function makeDemoBackend() {
     watchBaskets(cb) { return sub(() => cb([...load().baskets].sort((a, b) => b.ts - a.ts))); },
     async saveGame(g) { const s = load(); s.game = g; save(s); },
     async writeSummary() {},
+    async writeKeys(map) { const s = load(); s.keys = map; store.set(KEY, s); },
+    async fetchKeys() { return load().keys || {}; },
     async deleteBasket(id) { const s = load(); s.baskets = s.baskets.filter((b) => b.id !== id); save(s); },
     async resetAll() { const s = load(); s.baskets = []; save(s); },
   };
@@ -169,6 +180,8 @@ function makeFirebaseBackend(conf) {
     },
     async saveGame(g) { await fs.setDoc(fs.doc(db, "public", "config"), g); },
     async writeSummary(sum) { await fs.setDoc(fs.doc(db, "public", "summary"), { ...sum, updatedAt: fs.serverTimestamp() }); },
+    async writeKeys(map) { await fs.setDoc(fs.doc(db, "public", "keys"), { map, updatedAt: fs.serverTimestamp() }); },
+    async fetchKeys() { const s = await fs.getDoc(fs.doc(db, "public", "keys")); return s.exists() ? s.data().map || {} : {}; },
     async deleteBasket(id) { await fs.deleteDoc(fs.doc(db, "baskets", id)); },
     async resetAll() {
       const snap = await fs.getDocs(fs.collection(db, "baskets"));
@@ -183,6 +196,22 @@ function makeFirebaseBackend(conf) {
 }
 
 const backend = CFG.firebase ? makeFirebaseBackend(CFG.firebase) : makeDemoBackend();
+
+// Host-signed-in views also publish the bucket lookup codes (see bucketCode)
+function makeKeysWriter() {
+  let last = "", timer = null, pending = [];
+  return (baskets) => {
+    pending = baskets;
+    clearTimeout(timer);
+    timer = setTimeout(async () => {
+      const map = {};
+      for (const b of pending) if (b.id && b.team && b.zone) map[await bucketCode(b.team, b.zone, b.harvester, b.basket, b.relation)] = b.id;
+      const json = JSON.stringify(map);
+      if (json === last) return;
+      try { await backend.writeKeys(map); last = json; } catch (e) { console.warn("keys", e); }
+    }, 1500);
+  };
+}
 
 // Host-signed-in views (screen/host) read all buckets and publish a public summary for phones
 function makeSummaryWriter() {
@@ -230,6 +259,7 @@ function startJoin() {
   $("#j-start").addEventListener("click", () => {
     profile = { team: draft.team, zone: draft.zone, name: clean($("#j-name").value) };
     store.set("harvest-profile", profile);
+    setTimeout(() => linkIds(), 0);
     showMain();
   });
   $("#j-change").addEventListener("click", () => {
@@ -287,8 +317,8 @@ function startJoin() {
     const elsewhere = my - list.length; // counted on the server but typed on another phone or browser
     $("#j-mine-other").hidden = elsewhere <= 0;
     $("#j-mine-other").textContent = elsewhere === 1
-      ? "+1 more bucket added from another phone or browser. Names are only listed on the device where they were typed."
-      : `+${elsewhere} more buckets added from another phone or browser. Names are only listed on the device where they were typed.`;
+      ? "+1 more bucket added from another phone or browser. To list it here, use “Added a bucket on another phone?” below."
+      : `+${elsewhere} more buckets added from another phone or browser. To list them here, use “Added a bucket on another phone?” below.`;
   }
 
   $("#j-minelist").addEventListener("click", async (e) => {
@@ -381,6 +411,58 @@ function startJoin() {
   }
   if (profile) { $("#j-setup").hidden = true; }
 
+  // Give this phone the ids of its own buckets that it doesn't have yet (older entries),
+  // so every bucket the person added can be deleted by them.
+  let linking = null;
+  async function linkIds() {
+    if (!profile || linking) return linking;
+    const missing = myLocal().filter((m) => !m.id);
+    if (!missing.length) return;
+    linking = (async () => {
+      try {
+        const keys = await backend.fetchKeys();
+        let n = 0;
+        for (const m of missing) {
+          const id = keys[await bucketCode(m.team, m.zone, m.name, m.basket, m.relation)];
+          if (id && !mine.some((x) => x.id === id)) { m.id = id; n++; }
+        }
+        if (n) { store.set("harvest-mine", mine); render(); }
+      } catch (e) { console.warn("link ids", e); }
+      finally { linking = null; }
+    })();
+    return linking;
+  }
+  linkIds();
+
+  // A bucket typed on another phone: find it by its name and relationship and add it here.
+  $("#j-find").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!profile) return;
+    const basket = clean($("#j-find-name").value), relation = clean($("#j-find-rel").value);
+    if (!basket || !relation) { toast("Type the bucket name and the relationship", true); return; }
+    const btn = $("#j-find-btn");
+    btn.disabled = true; btn.textContent = "Looking…";
+    try {
+      const keys = await backend.fetchKeys();
+      const id = keys[await bucketCode(profile.team, profile.zone, profile.name, basket, relation)];
+      if (!id) { toast("Couldn't find it. Type both exactly as you entered them. A brand-new bucket can take a minute to appear.", true); return; }
+      if (mine.some((m) => m.id === id)) { toast(`${basket} is already in My buckets`); return; }
+      const same = myLocal().find((m) => !m.id && clean(m.basket).toLowerCase() === basket.toLowerCase());
+      if (same) same.id = id;
+      else mine.unshift({ id, team: profile.team, zone: profile.zone, name: profile.name, basket, relation, ts: 0 });
+      store.set("harvest-mine", mine);
+      $("#j-find-name").value = ""; $("#j-find-rel").value = "";
+      $("#j-find-box").open = false;
+      toast(`Found ${basket}. You can delete it from My buckets now.`);
+      render();
+    } catch (err) {
+      console.error(err);
+      toast("Couldn't look it up. Check your internet connection and try again.", true);
+    } finally {
+      btn.disabled = false; btn.textContent = "Find my bucket";
+    }
+  });
+
   // One-time restore link (#restore=...): puts names that were added from another device
   // back into this phone's "My buckets" list. It never writes to the server or changes counts.
   if (location.hash.startsWith("#restore=")) {
@@ -439,13 +521,14 @@ function startScreen() {
   let prev = null; // previous per-team totals
   const feedSeen = new Set(); // feed items already shown, so only new ones animate
   const writeSummary = makeSummaryWriter();
+  const writeKeys = makeKeysWriter();
   $("#s-signin").onclick = () => backend.signIn().catch((e) => toast("Sign-in failed: " + (e.code || e.message), true));
 
   withAdmin({
     loginBox: $("#s-login"), msgEl: $("#s-login-msg"),
     onReady() {
       backend.watchGame((g) => { game = g; draw(); }, (e) => adminDenied($("#s-login"), $("#s-login-msg"), e));
-      backend.watchBaskets((list) => { baskets = list; stats = computeStats(list); draw(); }, (e) => adminDenied($("#s-login"), $("#s-login-msg"), e));
+      backend.watchBaskets((list) => { baskets = list; stats = computeStats(list); draw(); writeKeys(list); }, (e) => adminDenied($("#s-login"), $("#s-login-msg"), e));
     },
   });
 
@@ -562,6 +645,7 @@ function startAdmin() {
   drawQR($("#a-qr"), joinUrl(), 150);
   let game = normalizeGame(null), baskets = [], formDirty = false;
   const writeSummary = makeSummaryWriter();
+  const writeKeys = makeKeysWriter();
   $("#a-signin").onclick = () => backend.signIn().catch((e) => toast("Sign-in failed: " + (e.code || e.message), true));
   $("#a-signout").onclick = () => backend.signOut().then(() => location.reload());
   if (backend.mode === "demo") $("#a-demo").hidden = false;
@@ -577,7 +661,7 @@ function startAdmin() {
       $("#a-main").hidden = false;
       const deny = (e) => { $("#a-main").hidden = true; adminDenied($("#a-login"), $("#a-login-msg"), e); };
       backend.watchGame((g) => { game = g; if (!formDirty) fillForm(); writeSummary(game, computeStats(baskets)); }, deny);
-      backend.watchBaskets((list) => { baskets = list; renderRows(); writeSummary(game, computeStats(baskets)); }, deny);
+      backend.watchBaskets((list) => { baskets = list; renderRows(); writeSummary(game, computeStats(baskets)); writeKeys(list); }, deny);
     },
   });
 

@@ -110,6 +110,8 @@ body:has(#view-join:not([hidden])){background:#fff}
 .mine-del.armed{border-color:#c8283a;background:#fdecee;color:#a31d2e}
 .mine-del:disabled{opacity:.6}
 .mine-old{font-size:12px;color:var(--muted);min-width:4.6em;text-align:center}
+.find{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+.find summary{cursor:pointer;font-size:14px;font-weight:600;color:var(--apple);list-style-position:inside}
 .mine h2{font-size:18px;margin-bottom:8px}
 .drop-apple{position:fixed;z-index:70;width:34px;height:34px;pointer-events:none}
 
@@ -303,8 +305,17 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
       <h2>My buckets</h2>
       <ul class="mine-list" id="j-minelist"></ul>
       <p class="muted" id="j-mine-empty">No buckets yet. Add your first one above.</p>
-      <p class="muted" id="j-mine-old" hidden style="margin-top:8px;font-size:13px">Buckets marked "Host only" were added before deleting was possible. Ask your host if one needs to be removed.</p>
+      <p class="muted" id="j-mine-old" hidden style="margin-top:8px;font-size:13px">Buckets marked "Host only" couldn't be matched yet. Try again later, or ask your host to remove it.</p>
       <p class="muted" id="j-mine-other" hidden style="margin-top:8px;font-size:13px"></p>
+      <details class="find" id="j-find-box">
+        <summary>Added a bucket on another phone?</summary>
+        <p class="muted" style="font-size:13px;margin:6px 0 10px">Type its bucket name and relationship exactly as you entered them. It will appear in My buckets so you can delete it here.</p>
+        <form id="j-find" autocomplete="off" style="display:grid;gap:10px">
+          <div class="field"><label for="j-find-name">Bucket name</label><input id="j-find-name" maxlength="20"></div>
+          <div class="field"><label for="j-find-rel">Relationship</label><input id="j-find-rel" maxlength="20"></div>
+          <button class="btn ghost" type="submit" id="j-find-btn">Find my bucket</button>
+        </form>
+      </details>
     </section>
   </div>
 </main>
@@ -408,7 +419,7 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
 <div class="demo-flag" id="demo-flag" hidden>Demo mode · saved in this browser only</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="config.js?v=17"></script>
-<script type="module" src="app.js?v=17"></script>
+<script src="config.js?v=18"></script>
+<script type="module" src="app.js?v=18"></script>
 </body>
 </html>
