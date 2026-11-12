@@ -7,31 +7,23 @@ const TEAM_IDS = ["t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8"];
 const ZONE_IDS = ["z1", "z2", "z3", "z4", "z5"];
 // Four steps, each one section of the Worthy Person Checklist. All items ticked = step done.
 const STEPS = [
-  { id: "water", name: "Water", sub: "Character", icon: "i-water", did: "gave water to", done: "Watering complete!",
-    title: "Character & Personal Qualities", items: [
-      ["Emotional Well-being", "Can the person participate comfortably and constructively in conversations and activities?"],
-      ["Learning & Understanding", "Can they understand key points and respond meaningfully to questions?"],
-      ["Independence & Relationships", "Can they make their own decisions and participate without undue pressure from others?"],
+  { id: "water", name: "Water", sub: "Availability", icon: "i-water", did: "gave water to", done: "Watering complete!",
+    title: "Availability", items: [
+      ["No plans to move away", "Do they have no plans to move far away?"],
+      ["In person 2–3 times a week", "Can they take part in person two or three times a week?"],
     ] },
   { id: "nourish", name: "Nourish", sub: "Faith", icon: "i-sprout", did: "nourished", done: "Nourishing complete!",
     title: "Faith Background", items: [
-      ["Faith Background", "Can they freely decide whether to explore faith, regardless of their current religious background?"],
-      ["Interest in the Bible", "Are they interested in learning about or discussing the Bible?"],
+      ["Not deeply tied to a church", "Are they not too deeply involved in their current church?"],
+      ["No poison", "Are there no 'poison' factors?"],
     ] },
-  { id: "sun", name: "Sunlight", sub: "Environment", icon: "i-sun", did: "gave sunlight to", done: "Sunlight complete!",
-    title: "Environment & Availability", items: [
-      ["Regular Meetings", "Can they meet regularly (around two or three times per week)?"],
-      ["Residence & Distance", "Can they travel to the meeting location regularly without undue difficulty?"],
-      ["Plans for the Next Year", "Are their plans for the coming year compatible with meeting regularly?"],
-      ["Studies & Frequent Business Travel", "Can they attend meetings regularly despite study commitments or frequent work-related travel?"],
-      ["In-Person Attendance", "Can they attend the planned in-person sessions regularly, with reasonable adjustments if needed?"],
+  { id: "sun", name: "Sunlight", sub: "Contact", icon: "i-sun", did: "gave sunlight to", done: "Sunlight complete!",
+    title: "Keeping in Touch", items: [
+      ["Stays in touch", "Over the past month, have they kept in touch regularly and rarely cancelled meetings?"],
     ] },
   { id: "bug", name: "Catch bugs", sub: "Special", icon: "i-bug", did: "caught the bugs for", done: "Bugs caught!",
     title: "Special Considerations", items: [
-      ["Keeping Appointments", "Do they generally keep appointments and, if unable to attend, communicate considerately and apologise?"],
-      ["Financial Practicality", "Can they take part regularly without financial difficulties making attendance impractical?"],
-      ["Business & Other Risks", "Do they avoid illegal business activities, exploitative schemes, or harmful gambling?"],
-      ["Returning Participants", "If they previously left a course, have the reasons and any barriers to returning been clarified? (Tick if it doesn't apply.)"],
+      ["No drug use", "Do they not use drugs?"],
     ] },
 ];
 const STEP_OF = Object.fromEntries(STEPS.map((x) => [x.id, x]));
