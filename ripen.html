@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Worthy Fruit</title>
+<title>Red Fruit Quest</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
 <style>
-/* Game 2. Same look as Fruit Bucket Quest: big screen = eight team trees over the alpine orchard; phone = one column of fruit cards */
+/* Game 2: Red Fruit Quest. Same look as Fruit Bucket Quest: big screen = eight team boards of apples turning red over the orchard */
 :root{
   --leaf:#3f7a3a; --leaf-deep:#22472a; --apple:#c8283a; --apple-deep:#8c1525;
   --cream:#fff8ef; --paper:#fffdf9; --wood:#a8743f; --wood-deep:#6e4721; --ink:#2f2924; --muted:#7a6d62; --line:#eadfd2;
@@ -43,88 +43,72 @@ svg.water{color:var(--water)} svg.nourish{color:var(--nourish)} svg.sun{color:va
 .field input{width:100%;border:2px solid var(--line);background:var(--paper);border-radius:12px;padding:12px 14px;font-size:17px}
 .field input:focus{border-color:var(--leaf);outline:none}
 .bar{height:14px;background:#efe4d6;border-radius:999px;overflow:hidden}
-.bar>i{display:block;height:100%;width:0;background:#6aa84f;border-radius:inherit;transition:width .8s,background .8s cubic-bezier(.2,.8,.2,1)}
+.bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#e2485a,var(--apple));border-radius:inherit;transition:width .8s,background .8s cubic-bezier(.2,.8,.2,1)}
 .toast{position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top,0px));transform:translate(-50%,-20px);opacity:0;background:var(--leaf-deep);color:#fff;padding:10px 18px;border-radius:999px;font-family:var(--f-display);font-size:17px;transition:.3s;z-index:60;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
 .toast.on{transform:translate(-50%,0);opacity:1}
 .toast.err{background:var(--apple-deep)}
 
 /* ---------- participant (phone) ---------- */
 body:has(#view-join:not([hidden])){background:#fff}
-#view-join{--cream:#fff;--paper:#fff;--line:#dcebd7;--muted:#5e7663;--ink:#1f2d22;max-width:520px;margin:0 auto;padding-block:16px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:14px}
-.j-banner{margin:-16px calc(-1 * max(16px,env(safe-area-inset-left,0px))) 0;position:relative}
+#view-join{--cream:#fff;--paper:#fff;--line:#e8dcd6;--muted:#6f6560;max-width:520px;margin:0 auto;padding-block:16px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:14px}
+.j-banner{margin:-16px calc(-1 * max(16px,env(safe-area-inset-left,0px))) 0}
 .j-banner img{display:block;width:100%;aspect-ratio:2.2/1;object-fit:cover}
-.j-banner::after{content:"";display:block;height:10px;background:linear-gradient(90deg,#6aa84f,#b0c43a,#f0a03a,#c8283a)}
+.j-banner::after{content:"";display:block;height:10px;background:linear-gradient(90deg,#6aa84f,#b5c43a,#f0a03a,#c8283a)}
 @media (min-width:521px){.j-banner{margin:0;border-radius:20px;overflow:hidden}}
 .j-brand{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .j-brand h1{font-size:24px;color:var(--apple-deep)}
 .j-brand .game{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block}
 .j-brand>span{font-size:13px;color:var(--muted)}
-.card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 2px 10px rgba(31,84,39,.06)}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 2px 10px rgba(80,20,20,.05)}
 .setup h2{font-size:22px;margin-bottom:4px}
 .setup p{margin:0 0 14px;color:var(--muted);font-size:15px}
 .setup .step{display:grid;gap:10px;margin-bottom:18px}
 .setup .step>b{font-family:var(--f-display);font-weight:600;font-size:17px}
 .choice{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .choice button{border:2px solid var(--line);background:#fff;border-radius:14px;padding:12px 6px;font-family:var(--f-display);font-weight:500;font-size:16px;min-width:0;overflow-wrap:anywhere}
-.choice button[aria-pressed="true"]{border-color:var(--leaf);background:#e9f5e5;color:var(--leaf-deep)}
-.hero{background:linear-gradient(180deg,#fff4ec,#fff);padding:16px}
-.hero-who .role{font-size:13px;color:var(--apple);letter-spacing:.06em}
-.hero-who h2{font-size:24px;overflow-wrap:anywhere}
-.hero-who .where{font-size:14px;color:var(--muted)}
-.my-count{display:flex;align-items:baseline;gap:8px;margin-top:10px}
-.my-count .disp{font-size:52px;line-height:1;color:var(--apple)}
-.my-count span{color:var(--muted)}
-.orchard{display:flex;flex-wrap:wrap;gap:2px;margin-top:8px;min-height:36px;align-items:center}
-.orchard svg{width:30px;height:30px}
-.orchard path{transition:fill .8s}
-.empty-note{color:var(--muted);font-size:14px}
-.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.stat h3{font-size:15px;color:var(--muted);font-family:var(--f-body);font-weight:700}
-.stat .big{font-family:var(--f-display);font-size:30px;line-height:1.2;margin:4px 0 8px}
-.stat .sub{font-size:13px;color:var(--muted);margin-top:6px}
-.how h2{font-size:19px;margin-bottom:4px}
-.how>p{margin:0 0 10px;color:var(--muted);font-size:14px}
-.how ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
-.how li{display:grid;grid-template-columns:36px 1fr;gap:10px;align-items:center}
-.how-ic{width:36px;height:36px;padding:6px;border-radius:12px;background:#f3f7f1}
-.how li b{font-family:var(--f-display);font-weight:600;display:block;line-height:1.2}
-.how li span{font-size:14px;color:var(--muted)}
-.scale{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13px;color:var(--muted)}
-.scale i{flex:1;height:8px;border-radius:999px;background:linear-gradient(90deg,#6aa84f,#b0c43a,#f0a03a,#c8283a)}
-.fruits h2{font-size:21px;margin-bottom:10px}
-.fruit-list{display:grid;gap:10px}
-.fruit{border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;gap:10px;background:#fff;transition:background .6s}
-.fruit.ripe{background:linear-gradient(180deg,#fff1f1,#fff);border-color:#f2c3c8}
-.fruit-top{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:12px;align-items:center}
-.apple.big{width:56px;height:56px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.15))}
-.apple path{transition:fill .8s}
-.fruit-who{min-width:0;display:grid}
-.fruit-who b{font-family:var(--f-display);font-weight:600;font-size:18px;overflow-wrap:anywhere;line-height:1.25}
-.fruit-who>span{font-size:13px;color:var(--muted)}
-.ripe-line{display:flex;gap:8px;align-items:center;margin-top:2px;font-size:13px}
-.ripe-tag{background:var(--c);color:#fff;border-radius:999px;padding:0 9px;font-weight:700;font-size:12px}
-.undo{border:1.5px solid var(--line);background:#fff;color:var(--muted);border-radius:999px;padding:3px 11px;font-size:13px;font-weight:600;align-self:start}
-.undo.armed{border-color:#c8283a;background:#fdecee;color:#a31d2e}
-.acts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.act{border:2px solid var(--line);background:#fff;border-radius:14px;padding:8px 4px 6px;display:grid;justify-items:center;gap:2px;min-width:0;transition:transform .08s,background .2s}
-.act:active:not(:disabled){transform:scale(.95)}
-.act.water{border-color:#cfe3f5} .act.nourish{border-color:#d6e8c8} .act.sun{border-color:#f6e1b3}
-.act-ic{width:28px;height:28px}
-.act.water .act-ic{color:var(--water)} .act.nourish .act-ic{color:var(--nourish)} .act.sun .act-ic{color:var(--sun)}
-.act-n{font-family:var(--f-display);font-weight:600;font-size:14px;line-height:1.2;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pips{display:flex;gap:3px}
-.pips i{width:8px;height:8px;border-radius:50%;background:#e4ece1}
-.act.water .pips i.on{background:var(--water)} .act.nourish .pips i.on{background:var(--nourish)} .act.sun .pips i.on{background:var(--sun)}
-.act-s{font-size:11px;color:var(--muted)}
-.act:disabled{cursor:default;background:#fafcf9}
-.act:disabled .act-ic{opacity:.55}
-.more{border-top:1px solid var(--line);padding-top:10px;margin-top:4px}
-.more summary{cursor:pointer;font-size:14px;font-weight:600;color:var(--leaf);list-style-position:inside}
-.more form{display:grid;gap:10px;margin-top:8px}
-.more p{font-size:13px;margin:6px 0 0}
-.float-ic{position:fixed;z-index:70;width:32px;height:32px;pointer-events:none;left:0;top:0}
-.float-ic svg{width:100%;height:100%}
-.spark{position:fixed;left:0;top:0;width:10px;height:10px;margin:-5px;border-radius:50%;background:#e8364a;z-index:70;pointer-events:none}
+.choice button[aria-pressed="true"]{border-color:var(--apple);background:#fdecee;color:var(--apple-deep)}
+.who-row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.who-row h2{font-size:22px;overflow-wrap:anywhere}
+.who-row .where{font-size:14px;color:var(--muted)}
+.mine-n{text-align:center;flex:none}
+.mine-n .disp{font-size:40px;line-height:1;color:var(--apple)}
+.mine-n small{display:block;font-size:12px;color:var(--muted)}
+.team-stat h3{font-size:15px;color:var(--muted);font-family:var(--f-body);font-weight:700}
+.team-stat .big{font-family:var(--f-display);font-size:34px;line-height:1.2;margin:2px 0 8px}
+.team-stat .big small{font-size:18px;color:var(--muted)}
+.team-stat .sub{font-size:14px;color:var(--muted);margin-top:6px}
+.ripen h2{font-size:22px;margin-bottom:4px}
+.ripen>p{margin:0 0 14px;color:var(--muted);font-size:15px}
+.rules{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-bottom:14px}
+.rules svg{width:22px;height:22px}
+.rules .arrow{opacity:.6}
+#j-pick-form{display:grid;gap:10px}
+.sugg-wrap{margin-top:14px}
+.sugg-wrap>span{font-size:13px;color:var(--muted)}
+.sugg{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.sugg button{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font-size:15px}
+.grow{display:grid;justify-items:center;gap:6px;text-align:center}
+#j-big-apple{width:150px;height:150px;filter:drop-shadow(0 6px 8px rgba(0,0,0,.18))}
+#j-big-apple .body{transition:fill .7s}
+.grow-name{font-family:var(--f-display);font-weight:600;font-size:24px;overflow-wrap:anywhere}
+.grow-hint{color:var(--muted);font-size:15px;min-height:1.5em}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;margin-top:6px}
+.step-btn{position:relative;border:2px solid var(--line);background:#fff;border-radius:18px;padding:14px 4px 10px;display:grid;justify-items:center;gap:4px;font-family:var(--f-display);font-weight:600;font-size:16px;transition:transform .08s}
+.step-btn:active:not(:disabled){transform:scale(.94)}
+.step-btn.water{border-color:#bcd9f2;background:#f3f9fe} .step-btn.nourish{border-color:#cfe5c0;background:#f5fbf1} .step-btn.sun{border-color:#f5dca5;background:#fffaf0}
+.step-ic{width:40px;height:40px}
+.step-btn.water .step-ic{color:var(--water)} .step-btn.nourish .step-ic{color:var(--nourish)} .step-btn.sun .step-ic{color:var(--sun)}
+.step-btn:disabled{opacity:.5;cursor:default}
+.step-btn .ok{position:absolute;top:6px;right:9px;color:var(--apple);font-size:16px}
+.cancel{margin-top:6px}
+.mine h2{font-size:18px;margin-bottom:8px}
+.mine-list{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.mine-list li{display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;border-bottom:1px dashed var(--line);padding:6px 0;font-size:15px}
+.mine-list .mi{width:24px;height:24px}
+.mine-list .mb{overflow-wrap:anywhere}
+.mine-del{border:1.5px solid var(--line);background:#fff;color:var(--muted);border-radius:999px;padding:3px 11px;font-size:13px;font-weight:600}
+.mine-del.armed{border-color:#c8283a;background:#fdecee;color:#a31d2e}
+.spark{position:fixed;left:0;top:0;width:12px;height:12px;margin:-6px;border-radius:50%;background:#e8364a;z-index:70;pointer-events:none}
 .muted{color:var(--muted);font-size:14px}
 
 /* ---------- big screen ---------- */
@@ -136,53 +120,46 @@ body:has(#view-join:not([hidden])){background:#fff}
 .scr-top{display:flex;align-items:flex-start;justify-content:space-between;gap:2vw}
 .scr-title .game{font-size:clamp(11px,.9vw,16px);letter-spacing:.12em;text-transform:uppercase;text-shadow:0 1px 6px rgba(0,0,0,.6)}
 .scr-title h1{font-size:clamp(28px,3.4vw,64px);text-shadow:0 3px 14px rgba(0,0,0,.5);line-height:1.05}
-.scr-title p{margin:.3em 0 0;font-size:clamp(13px,1.1vw,20px);text-shadow:0 1px 6px rgba(0,0,0,.7)}
-.scale-s{display:flex;align-items:center;gap:.6em;margin-top:.6em;font-size:clamp(11px,.85vw,15px);text-shadow:0 1px 4px rgba(0,0,0,.6)}
-.scale-s i{width:clamp(80px,9vw,170px);height:.7em;border-radius:999px;background:linear-gradient(90deg,#6aa84f,#b0c43a,#f0a03a,#c8283a);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.scr-title p{margin:.3em 0 0;font-size:clamp(13px,1.1vw,20px);text-shadow:0 1px 6px rgba(0,0,0,.7);display:flex;align-items:center;gap:.4em;flex-wrap:wrap}
+.scr-title p svg{width:1.4em;height:1.4em;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
 .scr-total{text-align:center;border-radius:22px;padding:1vh 1.8vw}
 .scr-total .lab{font-size:clamp(12px,1vw,18px);color:var(--soft)}
 .scr-total .disp{font-size:clamp(34px,4.4vw,84px);line-height:1;text-shadow:0 2px 14px rgba(200,40,58,.9)}
-.scr-total .disp small{font-size:.4em;color:var(--soft)}
 .scr-total .goal{font-size:clamp(12px,.95vw,17px);color:var(--soft)}
-.care-row{display:flex;gap:1.2vw;justify-content:center;margin-top:.5vh;font-size:clamp(11px,.85vw,15px);color:var(--soft)}
-.care-row span{display:flex;align-items:center;gap:.3em}
-.care-row b{color:#fff;font-family:var(--f-display)}
-.ic{width:1.3em;height:1.3em;flex:none}
 .scr-qr{display:flex;gap:10px;align-items:center;border-radius:18px;padding:8px 12px 8px 8px}
 .scr-qr .qr{overflow:hidden;width:clamp(70px,7vw,130px);height:clamp(70px,7vw,130px);background:#fff;border-radius:8px;padding:4px}
 .scr-qr .qr img,.scr-qr .qr canvas{width:100%!important;height:100%!important}
 .scr-qr p{margin:0;font-size:clamp(12px,.9vw,16px);max-width:12em;color:var(--soft)}
 .scr-qr b{font-family:var(--f-display);font-weight:600;font-size:clamp(15px,1.2vw,22px);display:block;color:#fff}
 .scr-mid{position:relative;min-height:0;overflow:hidden}
-.feed{position:absolute;left:0;top:0;width:min(26vw,390px);max-height:min(100%,17em);font-size:clamp(12px,.9vw,17px);display:grid;gap:6px;align-content:start;overflow-y:auto;-webkit-mask-image:linear-gradient(#000 82%,transparent);mask-image:linear-gradient(#000 82%,transparent);padding-right:6px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.45) transparent}
+.feed{position:absolute;left:0;top:0;width:min(26vw,380px);max-height:min(100%,17em);font-size:clamp(12px,.9vw,17px);display:grid;gap:6px;align-content:start;overflow-y:auto;-webkit-mask-image:linear-gradient(#000 82%,transparent);mask-image:linear-gradient(#000 82%,transparent);padding-right:6px;scrollbar-width:thin}
 .feed-item{border-radius:14px;padding:6px 12px;display:flex;align-items:center;gap:10px}
-.feed-item.ripe{background:rgba(140,21,37,.55);border-color:rgba(255,180,190,.6)}
 .feed-item.new{animation:feedIn .5s ease-out}
 .feed-item svg{width:1.8em;height:1.8em;flex:none}
 .feed-item .who{font-family:var(--f-display);font-weight:600}
-.feed-item .by{color:var(--soft);font-size:.85em}
 .feed-item .meta{color:var(--soft);font-size:.85em}
 @keyframes feedIn{from{transform:translateX(30px);opacity:0}}
 .teams{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:max(8px,.8vw);align-items:stretch}
-.team{border-radius:18px;padding:max(8px,.7vw);display:flex;flex-direction:column;gap:.5vh;position:relative}
+.team{border-radius:18px;padding:max(8px,.7vw);display:flex;flex-direction:column;gap:.6vh;position:relative}
 .team.done{background:rgba(140,21,37,.45);box-shadow:0 0 0 3px #ff6b78,0 10px 40px rgba(255,80,90,.5)}
 .team-head{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
 .team-head h2{font-size:clamp(15px,1.4vw,28px);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 6px rgba(0,0,0,.4)}
 .team-head .rank{font-size:clamp(11px,.85vw,15px);background:rgba(200,40,58,.85);border-radius:999px;padding:1px 9px;white-space:nowrap;font-family:var(--f-display)}
 .team-count{font-family:var(--f-display);font-weight:600;font-size:clamp(20px,2.1vw,42px);line-height:1;text-shadow:0 1px 8px rgba(0,0,0,.4)}
-.team-count small{font-size:.45em;color:var(--soft);margin-left:.2em}
-.crown{width:100%;height:auto;display:block;filter:drop-shadow(0 2px 3px rgba(0,0,0,.25))}
-.crown circle{transition:fill .8s;stroke:rgba(0,0,0,.18);stroke-width:.35}
-.team-ripe{display:flex;align-items:center;gap:.35em;font-size:clamp(12px,.95vw,18px)}
-.team-ripe b{font-family:var(--f-display);font-size:1.25em}
-.team-ripe span{color:var(--soft)}
-.team-care{display:flex;justify-content:space-between;font-size:clamp(10px,.8vw,14px);color:var(--soft)}
-.team-care span{display:flex;align-items:center;gap:.2em}
-.team-care b{color:#fff}
+.team-count small{font-size:.5em;color:var(--soft)}
+.slots{display:grid;gap:1px}
+.slot{aspect-ratio:1;position:relative}
+.slot svg{position:absolute;inset:0;width:100%;height:100%}
+.slot:not(.red) svg{opacity:.55}
+.slot.red svg{filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
+.slot.new svg{animation:slotIn .9s cubic-bezier(.2,1.6,.4,1)}
+@keyframes slotIn{0%{transform:scale(.4);filter:brightness(2)}100%{transform:none}}
+.over{font-size:clamp(11px,.85vw,15px);color:var(--apple-deep);background:rgba(255,230,232,.92);border-radius:8px;padding:2px 8px;align-self:flex-start;font-family:var(--f-display)}
 .zones{display:grid;gap:2px;font-size:clamp(10px,.75vw,14px);margin-top:auto}
 .zone{display:grid;grid-template-columns:5em 1fr 1.8em;align-items:center;gap:6px}
 .zone span:first-child{color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .zone .bar{height:.6em;background:var(--track)}
+.zone .bar>i{background:#ff8a95}
 .zone span:last-child{text-align:right}
 .done-badge{position:absolute;top:-14px;right:10px;background:#ff6b78;color:#fff;font-family:var(--f-display);border-radius:999px;padding:2px 12px;font-size:clamp(12px,1vw,18px);box-shadow:0 3px 0 var(--apple-deep)}
 .scr-login{position:absolute;inset:0;display:grid;place-items:center;background:rgba(25,45,70,.5);z-index:20;padding:16px}
@@ -196,17 +173,12 @@ body:has(#view-join:not([hidden])){background:#fff}
 .confetti{position:absolute;top:-40px;width:26px;height:26px;animation:fall linear forwards}
 .confetti svg{width:100%;height:100%}
 @keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
-@media (max-width:900px){
-  .teams{grid-template-columns:repeat(4,minmax(0,1fr))}
-  .feed{position:static;width:auto;max-height:32vh}
-  .scr-top{flex-wrap:wrap}
-  .scr-qr{display:none}
-}
+@media (max-width:900px){.teams{grid-template-columns:repeat(4,minmax(0,1fr))}.feed{position:static;width:auto;max-height:32vh}.scr-top{flex-wrap:wrap}.scr-qr{display:none}}
 
 /* ---------- host ---------- */
 #view-admin{max-width:980px;margin:0 auto;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:16px;align-content:start}
-#view-admin::before{content:"";display:block;height:12px;border-radius:999px;background:linear-gradient(90deg,#6aa84f,#b0c43a,#f0a03a,#c8283a)}
-#view-admin h1{font-size:28px;color:var(--leaf-deep)}
+#view-admin::before{content:"";display:block;height:12px;border-radius:999px;background:linear-gradient(90deg,#6aa84f,#b5c43a,#f0a03a,#c8283a)}
+#view-admin h1{font-size:28px;color:var(--apple-deep)}
 #view-admin h2{font-size:21px;margin-bottom:10px}
 .adm-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .adm-head .who{font-size:14px;color:var(--muted)}
@@ -214,10 +186,9 @@ body:has(#view-join:not([hidden])){background:#fff}
 .adm-links .qr{width:150px;height:150px;background:#fff;padding:6px;border-radius:10px;border:1px solid var(--line)}
 .adm-links code{font-size:14px;background:var(--cream);padding:4px 8px;border-radius:8px;word-break:break-all;display:inline-block}
 .adm-links p{margin:0 0 10px}
-.act-edit{display:grid;grid-template-columns:28px minmax(0,.8fr) minmax(0,2fr);gap:8px;align-items:center}
-.act-edit .ic{width:28px;height:28px}
-.act-edit input,.num-in{border:2px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--paper);min-width:0;width:100%}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.goals{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.goal-edit{display:grid;grid-template-columns:1fr 5em;gap:8px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:6px 6px 6px 12px;font-family:var(--f-display);font-weight:600}
+.goal-edit input{border:2px solid var(--line);border-radius:10px;padding:6px 8px;width:100%}
 .tbl-wrap{overflow-x:auto;max-height:480px;overflow-y:auto;border:1px solid var(--line);border-radius:12px}
 table{border-collapse:collapse;width:100%;font-size:14px;background:var(--paper)}
 th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -226,7 +197,6 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
 .row-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
 .danger{border:2px dashed var(--apple);border-radius:16px;padding:14px;display:grid;gap:10px}
 .danger input{border:2px solid var(--line);border-radius:10px;padding:8px 10px;max-width:200px}
-@media (max-width:620px){.act-edit{grid-template-columns:28px 1fr}.act-edit input[id^="a-ah-"]{grid-column:2}.two{grid-template-columns:1fr}}
 @media (max-width:520px){.adm-links{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
@@ -254,6 +224,10 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
       <path d="M24 14 q0-6 4-9" fill="none" stroke="#5a3a1a" stroke-width="2.2" stroke-linecap="round"/>
       <path d="M26 9 q7-6 12-1 q-6 5-12 1z" fill="#4f8a3f"/>
     </symbol>
+    <symbol id="i-apple-green" viewBox="0 0 48 48">
+      <path d="M24 14 C18 9 7 11 7 24 C7 35 15 44 20 44 C22 44 23 43 24 43 C25 43 26 44 28 44 C33 44 41 35 41 24 C41 11 30 9 24 14Z" fill="#8fc46a" stroke="#fff" stroke-width="1.5" stroke-opacity=".6"/>
+      <path d="M24 14 q0-6 4-9" fill="none" stroke="#5a3a1a" stroke-width="2.2" stroke-linecap="round"/>
+    </symbol>
   </defs>
 </svg>
 
@@ -261,76 +235,63 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
 <main id="view-join" class="view" hidden>
   <div class="j-banner"><img src="assets/orchard-banner.jpg" alt="Apple trees full of fruit in an alpine meadow"></div>
   <div class="j-brand">
-    <h1><span class="game">Game 2</span><span id="j-title">Worthy Fruit</span></h1>
+    <h1><span class="game">Game 2</span><span id="j-title">Red Fruit Quest</span></h1>
     <span id="j-sync">Loading…</span>
   </div>
 
   <section class="card setup" id="j-setup" hidden>
-    <h2>Join as a gardener</h2>
-    <p>Use the same team, cell and name as in the bucket game, so your buckets become your fruits.</p>
+    <h2>Join your team</h2>
+    <p>Pick your team, cell and name once. This phone will remember them.</p>
     <div class="step"><b>Your team</b><div class="choice" id="j-teams"></div></div>
     <div class="step" id="j-zone-step" hidden><b>Your cell</b><div class="choice" id="j-zones"></div></div>
     <div class="step field"><label for="j-name">Your name</label><input id="j-name" maxlength="20" autocomplete="name" placeholder="e.g. Anna Keller"></div>
-    <button class="btn green" id="j-start" disabled>Start gardening</button>
+    <button class="btn" id="j-start" disabled>Start</button>
   </section>
 
   <div id="j-main" hidden style="display:grid;gap:14px">
-    <section class="card hero">
-      <div class="hero-who">
-        <div class="role">Gardener</div>
-        <h2 id="j-who"></h2>
-        <div class="where"><span id="j-where"></span> · <button class="link" id="j-change">Change</button></div>
+    <section class="card">
+      <div class="who-row">
+        <div><h2 id="j-who"></h2><div class="where"><span id="j-where"></span> · <button class="link" id="j-change">Change</button></div></div>
+        <div class="mine-n"><span class="disp num" id="j-mycount">0</span><small>my red fruits</small></div>
       </div>
-      <div class="my-count"><span class="disp num" id="j-ripe">0</span><span>of <b class="num" id="j-ripe-of">0</b> fruits are red</span></div>
-      <div class="orchard" id="j-orchard"></div>
     </section>
 
-    <div class="stat-row">
-      <section class="card stat">
-        <h3 id="j-team-label">Your team</h3>
-        <div class="big num" id="j-team-pct">0%</div>
-        <div class="bar" id="j-team-bar"><i></i></div>
-        <div class="sub" id="j-team-sub"></div>
-      </section>
-      <section class="card stat">
-        <h3>Everyone</h3>
-        <div class="big num" id="j-all-pct">0%</div>
-        <div class="bar" id="j-all-bar"><i></i></div>
-        <div class="sub" id="j-all-sub"></div>
-      </section>
-    </div>
-
-    <section class="card how">
-      <h2>How a fruit turns red</h2>
-      <p>Each person from your buckets is a green fruit. When you really do one of these for them, tap it on their fruit. Fill each one <b id="j-need">3 times</b>.</p>
-      <ul id="j-how"></ul>
-      <div class="scale"><span>Green</span><i></i><span>Red</span></div>
-      <p class="muted" id="j-gap" hidden style="margin:10px 0 0;font-size:13px"></p>
+    <section class="card team-stat">
+      <h3 id="j-team-label">Your team</h3>
+      <div class="big num"><span id="j-team-n">0</span> <small>/ <span id="j-team-q">0</span> red fruits</small></div>
+      <div class="bar" id="j-team-bar"><i></i></div>
+      <div class="sub" id="j-team-left"></div>
     </section>
 
-    <section class="card fruits">
-      <h2>My fruits</h2>
-      <div class="fruit-list" id="j-fruits"></div>
-      <p class="muted" id="j-nofruit" hidden>No fruits yet. Your buckets from the bucket game appear here when you join with the same team, cell and name on this phone. Added them on another phone? Use “Find a bucket” below.</p>
-      <details class="more" id="j-add-box">
-        <summary>Found someone new?</summary>
-        <p class="muted">They become a new green fruit here, and a new bucket for your team in the bucket game.</p>
-        <form id="j-add" autocomplete="off">
-          <div class="field"><label for="j-add-name">Name</label><input id="j-add-name" maxlength="20"></div>
-          <div class="field"><label for="j-add-rel">Relationship</label><input id="j-add-rel" maxlength="20" list="rel-list" placeholder="e.g. Friend, Family, Coworker"></div>
-          <datalist id="rel-list"><option value="Family"><option value="Friend"><option value="Coworker"><option value="Classmate"><option value="Neighbor"><option value="Acquaintance"></datalist>
-          <button class="btn green" type="submit" id="j-add-btn">Plant this fruit</button>
+    <section class="card ripen">
+      <div id="j-pick">
+        <h2>Make a fruit red</h2>
+        <p>Think of one person. Give them water, nourishment and sunlight, and their fruit turns red for your team.</p>
+        <div class="rules"><svg class="water"><use href="#i-water"/></svg> + <svg class="nourish"><use href="#i-sprout"/></svg> + <svg class="sun"><use href="#i-sun"/></svg> <span class="arrow">→</span> <svg><use href="#i-apple-red"/></svg> +1 for your team</div>
+        <form id="j-pick-form" autocomplete="off">
+          <div class="field"><label for="j-fruit-name">Person's name</label><input id="j-fruit-name" maxlength="20" placeholder="e.g. Marco Rossi"></div>
+          <button class="btn" type="submit">Start ripening</button>
         </form>
-      </details>
-      <details class="more" id="j-find-box">
-        <summary>Find a bucket from another phone</summary>
-        <p class="muted">Type its name and relationship exactly as you entered them in the bucket game.</p>
-        <form id="j-find" autocomplete="off">
-          <div class="field"><label for="j-find-name">Bucket name</label><input id="j-find-name" maxlength="20"></div>
-          <div class="field"><label for="j-find-rel">Relationship</label><input id="j-find-rel" maxlength="20"></div>
-          <button class="btn ghost" type="submit" id="j-find-btn">Find my bucket</button>
-        </form>
-      </details>
+        <div class="sugg-wrap" id="j-sugg-wrap" hidden><span>Or pick from your buckets</span><div class="sugg" id="j-sugg"></div></div>
+      </div>
+      <div id="j-grow" class="grow" hidden>
+        <svg id="j-big-apple" viewBox="0 0 48 48" aria-hidden="true">
+          <path class="body" d="M24 14 C18 9 7 11 7 24 C7 35 15 44 20 44 C22 44 23 43 24 43 C25 43 26 44 28 44 C33 44 41 35 41 24 C41 11 30 9 24 14Z" fill="#6aa84f"/>
+          <ellipse cx="16" cy="21" rx="3" ry="5" fill="#fff" opacity=".35"/>
+          <path d="M24 14 q0-6 4-9" fill="none" stroke="#5a3a1a" stroke-width="2.2" stroke-linecap="round"/>
+          <path d="M26 9 q7-6 12-1 q-6 5-12 1z" fill="#4f8a3f"/>
+        </svg>
+        <div class="grow-name" id="j-grow-name"></div>
+        <div class="grow-hint" id="j-grow-hint"></div>
+        <div class="steps" id="j-steps"></div>
+        <button class="link cancel" type="button" id="j-cancel">Cancel</button>
+      </div>
+    </section>
+
+    <section class="card mine">
+      <h2>My red fruits</h2>
+      <ul class="mine-list" id="j-mine"></ul>
+      <p class="muted" id="j-mine-empty">None yet. Make your first fruit red above.</p>
     </section>
   </div>
 </main>
@@ -342,19 +303,17 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
     <header class="scr-top">
       <div class="scr-title">
         <div class="game">Game 2</div>
-        <h1 id="s-title">Worthy Fruit</h1>
-        <p>Water, nourish and give sunlight until every fruit is red</p>
-        <div class="scale-s"><span>Green</span><i></i><span>Red</span></div>
+        <h1 id="s-title">Red Fruit Quest</h1>
+        <p><svg class="water"><use href="#i-water"/></svg> + <svg class="nourish"><use href="#i-sprout"/></svg> + <svg class="sun"><use href="#i-sun"/></svg> → <svg><use href="#i-apple-red"/></svg> Make every fruit red</p>
       </div>
       <div class="scr-total glass">
         <div class="lab">Red fruits</div>
-        <div class="disp num"><span id="s-ripe">0</span><small> / <span id="s-fruits">0</span></small></div>
-        <div class="goal num">Overall ripeness <b id="s-pct">0%</b></div>
-        <div class="care-row" id="s-care"></div>
+        <div class="disp num" id="s-total">0</div>
+        <div class="goal num">Goal <span id="s-goal">0</span></div>
       </div>
       <div class="scr-qr glass">
         <div class="qr" id="s-qr"></div>
-        <p><b>Join on your phone</b>Scan, then tend your fruits</p>
+        <p><b>Join on your phone</b>Scan, then make fruits red for your team</p>
       </div>
     </header>
     <div class="scr-mid"><div class="feed" id="s-feed"></div></div>
@@ -373,16 +332,14 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
 <!-- ===== host ===== -->
 <main id="view-admin" class="view" hidden>
   <div class="adm-head">
-    <h1>Worthy Fruit · Host panel</h1>
+    <h1>Red Fruit Quest · Host panel</h1>
     <div class="who"><span id="a-who"></span> <button class="link" id="a-signout" hidden>Sign out</button></div>
   </div>
-
   <section class="card" id="a-login" hidden>
     <h2>Host sign-in</h2>
     <p class="muted" id="a-login-msg">Sign in with the host Google account listed in your Firebase security rules.</p>
     <button class="btn green" id="a-signin">Sign in with Google</button>
   </section>
-
   <div id="a-main" hidden style="display:grid;gap:16px">
     <section class="card">
       <h2>Links</h2>
@@ -391,54 +348,33 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
         <div>
           <p>Participants (phones)<br><code id="a-url-join"></code></p>
           <p>Big screen<br><code id="a-url-screen"></code></p>
-          <p class="muted">Teams and cells come from the bucket game's host panel. Keep the big screen open while people play: it sends the latest totals to phones.</p>
+          <p class="muted">Teams and cells come from the bucket game. Keep the big screen open during the game: it sends the latest totals to phones.</p>
         </div>
       </div>
     </section>
-
     <section class="card">
       <h2>Game settings</h2>
       <form id="a-form" style="display:grid;gap:14px">
         <div class="field"><label for="a-title">Game title</label><input id="a-title" maxlength="40"></div>
-        <div>
-          <div class="muted" style="margin-bottom:8px">The three actions · name · what it means in real life</div>
-          <div id="a-actions" style="display:grid;gap:8px"></div>
-        </div>
-        <div class="two">
-          <div class="field"><label for="a-need">Taps of each action to fill it (1–9)</label><input class="num-in" id="a-need" type="number" min="1" max="9"></div>
-          <div class="field"><label for="a-gap">Hours to wait between two taps of the same action (0 = no wait)</label><input class="num-in" id="a-gap" type="number" min="0" max="168" step="0.5"></div>
-        </div>
+        <div><div class="muted" style="margin-bottom:8px">Red-fruit goal for each team</div><div class="goals" id="a-goals"></div></div>
         <div><button class="btn green" type="submit">Save settings</button></div>
       </form>
     </section>
-
     <section class="card">
-      <h2>Teams</h2>
-      <p class="muted" id="a-sum" style="margin:0 0 10px"></p>
-      <div class="tbl-wrap"><table><thead><tr id="a-team-head"></tr></thead><tbody id="a-team-rows"></tbody></table></div>
-    </section>
-
-    <section class="card">
-      <h2>Care given <span class="muted num" id="a-count"></span></h2>
-      <div class="tbl-wrap">
-        <table>
-          <thead><tr><th>Time</th><th>Team</th><th>Cell</th><th>Gardener</th><th>Fruit</th><th>Action</th><th></th></tr></thead>
-          <tbody id="a-rows"></tbody>
-        </table>
-      </div>
+      <h2>Red fruits <span class="muted num" id="a-count"></span></h2>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Time</th><th>Team</th><th>Cell</th><th>Gardener</th><th>Name</th><th></th></tr></thead>
+        <tbody id="a-rows"></tbody>
+      </table></div>
       <div class="row-actions">
         <button class="btn ghost" id="a-csv">Download CSV</button>
-        <button class="btn ghost" id="a-demo" hidden>Add sample care (demo only)</button>
+        <button class="btn ghost" id="a-demo" hidden>Add 30 sample red fruits (demo only)</button>
       </div>
     </section>
-
     <section class="danger">
-      <h2 style="margin:0">Reset Worthy Fruit</h2>
-      <p class="muted" style="margin:0">Deletes every care record, so every fruit turns green again. The buckets from the bucket game stay. Type <b>RESET</b> to enable the button.</p>
-      <div class="row-actions" style="margin:0">
-        <input id="a-reset-text" placeholder="RESET" aria-label="Type RESET to confirm">
-        <button class="btn" id="a-reset" disabled>Delete all care</button>
-      </div>
+      <h2 style="margin:0">Reset</h2>
+      <p class="muted" style="margin:0">Deletes every red fruit. The bucket game is not touched. Type <b>RESET</b> to enable the button.</p>
+      <div class="row-actions" style="margin:0"><input id="a-reset-text" placeholder="RESET" aria-label="Type RESET to confirm"><button class="btn" id="a-reset" disabled>Delete all red fruits</button></div>
     </section>
   </div>
 </main>
@@ -448,6 +384,6 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="config.js?v=18"></script>
-<script type="module" src="ripen.js?v=1"></script>
+<script type="module" src="ripen.js?v=2"></script>
 </body>
 </html>
