@@ -217,10 +217,17 @@ function startJoin() {
   let profile = store.get("harvest-profile", null); // same as the bucket game on this site
   let mine = store.get("ripen-mine", []);           // red fruits this phone made: [{id, team, zone, name, fruit, ts}]
   const buckets = store.get("harvest-mine", []);    // names from the bucket game, used as suggestions
+  // fruits still ripening, saved after every tick: [{key, team, zone, name, fruit, checks: {step: [i]}, sent: {step: [i]}, ts}]
+  let prog = store.get("ripen-progress", []);
   let draft = { team: profile?.team, zone: profile?.zone };
-  let cur = null; // { fruit, done: Set }
+  let cur = null; // the progress entry being worked on
 
-  const myLocal = () => mine.filter((m) => profile && m.team === profile.team && m.zone === profile.zone && clean(m.name) === clean(profile.name));
+  const isMe = (m) => profile && m.team === profile.team && m.zone === profile.zone && clean(m.name) === clean(profile.name);
+  const myLocal = () => mine.filter(isMe);
+  const myProg = () => prog.filter(isMe);
+  const saveProg = () => store.set("ripen-progress", prog);
+  const stepDone = (p, st) => (p.checks?.[st.id]?.length || 0) >= st.items.length;
+  const doneCount = (p) => STEPS.filter((st) => stepDone(p, st)).length;
 
   // ---- setup ----
   function renderSetup() {
@@ -276,31 +283,48 @@ function startJoin() {
       $("#j-sugg-wrap").hidden = !sugg.length;
       $("#j-sugg").innerHTML = sugg.map((n) => `<button type="button" data-name="${esc(n)}">${esc(n)}</button>`).join("");
     } else {
-      const n = cur.done.size;
+      const n = doneCount(cur);
       $("#j-grow-name").textContent = cur.fruit;
       $("#j-big-apple path.body").setAttribute("fill", STEP_COLORS[n]);
       const left = STEPS.length - n;
-      $("#j-grow-hint").textContent = n === 0 ? "Complete all four to make it red" : left === 0 ? "It's red!" : left === 1 ? "One more and it's red!" : left === 2 ? "Two more!" : "Three more!";
-      $("#j-steps").innerHTML = STEPS.map((s) => `<button type="button" class="step-btn ${s.id}" data-step="${s.id}" ${cur.done.has(s.id) ? "disabled" : ""}>
-        ${svg(s.icon, "step-ic")}<span>${s.name}</span><small>${s.sub}</small>${cur.done.has(s.id) ? `<b class="ok">✓</b>` : ""}</button>`).join("");
+      $("#j-grow-hint").textContent = n === 0 ? "Complete all four to make it red" : left === 0 ? (cur.saving ? "It's red!" : "Tap the apple to save it") : left === 1 ? "One more and it's red!" : left === 2 ? "Two more!" : "Three more!";
+      $("#j-steps").innerHTML = STEPS.map((s) => {
+        const d = stepDone(cur, s), k = cur.checks?.[s.id]?.length || 0;
+        return `<button type="button" class="step-btn ${s.id}" data-step="${s.id}" ${d ? "disabled" : ""}>
+        ${svg(s.icon, "step-ic")}<span>${s.name}</span><small>${s.sub}${!d && k ? ` · ${k}/${s.items.length}` : ""}</small>${d ? `<b class="ok">✓</b>` : ""}</button>`;
+      }).join("");
     }
 
+    // My fruits: still ripening (tap to continue) first, then the red ones
+    const growing = myProg().slice().sort((a, b) => (b.ts || 0) - (a.ts || 0));
     const list = myLocal().slice().reverse();
-    $("#j-mine").innerHTML = list.map((m) => `<li>${svg("i-apple-red", "mi")}<span class="mb">${esc(m.fruit)}</span>${m.id ? `<button type="button" class="mine-del" data-del="${esc(m.id)}">Delete</button>` : ""}</li>`).join("");
-    $("#j-mine-empty").hidden = list.length > 0;
+    $("#j-mine").innerHTML =
+      growing.map((p) => { const n = doneCount(p); return `<li class="growing${cur === p ? " cur" : ""}" data-open="${esc(p.key)}">
+        <svg class="mi" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 14 C18 9 7 11 7 24 C7 35 15 44 20 44 C22 44 23 43 24 43 C25 43 26 44 28 44 C33 44 41 35 41 24 C41 11 30 9 24 14Z" fill="${STEP_COLORS[n]}"/><path d="M24 14 q0-6 4-9" fill="none" stroke="#5a3a1a" stroke-width="2.2" stroke-linecap="round"/></svg>
+        <span class="mb">${esc(p.fruit)}<small>${n} / ${STEPS.length} · tap to continue</small></span>
+        <button type="button" class="mine-del" data-drop="${esc(p.key)}">Remove</button></li>`; }).join("") +
+      list.map((m) => `<li>${svg("i-apple-red", "mi")}<span class="mb">${esc(m.fruit)}<small>Red</small></span>${m.id ? `<button type="button" class="mine-del" data-del="${esc(m.id)}">Delete</button>` : ""}</li>`).join("");
+    $("#j-mine-empty").hidden = list.length + growing.length > 0;
   }
 
   function startFruit(name) {
     const n = clean(name);
     if (!n) { toast("Type a name first", true); return; }
     if (myLocal().some((m) => clean(m.fruit).toLowerCase() === n.toLowerCase())) { toast(`${n} is already a red fruit`, true); return; }
-    cur = { fruit: n, done: new Set() };
+    const key = `${personKey(profile.team, profile.zone, profile.name)}|${n.toLowerCase()}`;
+    cur = prog.find((p) => p.key === key);
+    if (!cur) {
+      cur = { key, team: profile.team, zone: profile.zone, name: profile.name, fruit: n, checks: {}, sent: {}, ts: Date.now() };
+      prog.push(cur); saveProg();
+    }
     $("#j-fruit-name").value = "";
     render();
+    $("#j-grow").scrollIntoView({ behavior: "smooth", block: "center" });
   }
   $("#j-pick-form").addEventListener("submit", (e) => { e.preventDefault(); startFruit($("#j-fruit-name").value); });
   $("#j-sugg").addEventListener("click", (e) => { const b = e.target.closest("[data-name]"); if (b) startFruit(b.dataset.name); });
-  $("#j-cancel").addEventListener("click", () => { cur = null; render(); });
+  $("#j-cancel").addEventListener("click", () => { cur = null; render(); toast("Saved. Tap it in My fruits to continue."); });
+  $("#j-big-apple").addEventListener("click", () => { if (cur && doneCount(cur) === STEPS.length && !cur.saving) finish(); });
 
   // ---- checklist sheet: a step is done when every item of its section is ticked ----
   const sheet = $("#j-sheet");
@@ -316,8 +340,9 @@ function startJoin() {
     $("#j-sheet-ic").innerHTML = svg(st.icon, "sheet-ic " + st.id);
     $("#j-sheet-title").textContent = `${st.name} · ${st.title}`;
     $("#j-sheet-for").textContent = `For ${cur.fruit}: tick each one that is true.`;
+    const on = new Set(cur.checks?.[st.id] || []);
     $("#j-sheet-list").innerHTML = st.items.map(([t, q], i) => `
-      <label class="chk"><input type="checkbox" data-i="${i}"><span class="box"></span>
+      <label class="chk"><input type="checkbox" data-i="${i}"${on.has(i) ? " checked" : ""}><span class="box"></span>
         <span class="txt"><b>${esc(t)}</b><span>${esc(q)}</span></span></label>`).join("");
     updateSheet();
     sheet.hidden = false;
@@ -337,8 +362,20 @@ function startJoin() {
     $("#j-sheet-bar").style.width = `${(n / boxes.length) * 100}%`;
     return n === boxes.length;
   }
-  $("#j-sheet-list").addEventListener("change", () => {
-    if (!updateSheet() || !open) return;
+  $("#j-sheet-list").addEventListener("change", (e) => {
+    if (!open || !cur) return;
+    // save every tick right away, and tell the big screen the first time each item is ticked
+    const boxes = [...$("#j-sheet-list").querySelectorAll("input")];
+    cur.checks[open] = boxes.filter((x) => x.checked).map((x) => +x.dataset.i);
+    cur.sent[open] ||= [];
+    const i = +e.target.dataset.i;
+    if (e.target.checked && !cur.sent[open].includes(i)) {
+      cur.sent[open].push(i);
+      backend.addCare({ team: cur.team, zone: cur.zone, harvester: cur.name, fruit: cur.fruit, kind: open }).catch((err) => console.warn("care", err));
+    }
+    saveProg();
+    render();
+    if (!updateSheet()) return;
     const st = STEP_OF[open];
     open = null;
     setTimeout(() => { closeSheet(); completeStep(st); }, 450);
@@ -346,32 +383,35 @@ function startJoin() {
   $("#j-sheet-close").addEventListener("click", closeSheet);
   sheet.addEventListener("click", (e) => { if (e.target === sheet) closeSheet(); });
 
-  async function completeStep(st) {
-    if (!cur || cur.done.has(st.id)) return;
-    cur.done.add(st.id);
-    backend.addCare({ team: profile.team, zone: profile.zone, harvester: profile.name, fruit: cur.fruit, kind: st.id }).catch((e) => console.warn("care", e));
+  function completeStep(st) {
+    if (!cur || !stepDone(cur, st)) return;
     render();
     const ap = $("#j-big-apple");
     stepFx(st, ap);
     ap.animate([{ transform: "scale(1)" }, { transform: "scale(1.15)" }, { transform: "scale(1)" }], { duration: 450, easing: "ease-out" });
-    if (cur.done.size < STEPS.length) return;
+    if (doneCount(cur) === STEPS.length) finish();
+  }
 
-    // all four done: it's red -> save it for the team
+  // all four done: it's red -> save it for the team
+  async function finish() {
     const f = cur;
-    const b = { dataset: { step: st.id } };
-    $("#j-steps").querySelectorAll("button").forEach((x) => (x.disabled = true));
+    if (!f || f.saving) return;
+    f.saving = true;
+    const ap = $("#j-big-apple");
+    render();
     try {
       const id = await backend.addFruit({ team: profile.team, zone: profile.zone, harvester: profile.name, fruit: f.fruit });
       mine.push({ id, team: profile.team, zone: profile.zone, name: profile.name, fruit: f.fruit, ts: Date.now() });
       store.set("ripen-mine", mine);
+      prog = prog.filter((p) => p !== f); saveProg();
       if (stats && !backend.live) { stats.total++; const T = stats.teams[profile.team]; if (T) { T.total++; T.zones[profile.zone]++; } }
       setTimeout(() => { burst(ap); toast(`${f.fruit} is red! +1 for ${teamOf(game, profile.team)?.name || "your team"}`); }, 1400);
-      setTimeout(() => { cur = null; render(); }, 2600);
+      setTimeout(() => { if (cur === f) cur = null; render(); }, 2600);
     } catch (err) {
       console.error(err);
-      cur.done.delete(b.dataset.step);
+      f.saving = false;
       render();
-      toast("Couldn't save. Check your internet connection and tap again.", true);
+      toast("Couldn't save. Check your internet connection, then tap the apple.", true);
     }
   }
 
@@ -414,6 +454,26 @@ function startJoin() {
   }
 
   $("#j-mine").addEventListener("click", async (e) => {
+    const drop = e.target.closest("[data-drop]");
+    if (drop) {
+      if (drop.dataset.armed !== "1") {
+        drop.dataset.armed = "1"; drop.textContent = "Confirm"; drop.classList.add("armed");
+        setTimeout(() => { if (drop.isConnected) { drop.dataset.armed = ""; drop.textContent = "Remove"; drop.classList.remove("armed"); } }, 3000);
+        return;
+      }
+      const p = prog.find((x) => x.key === drop.dataset.drop);
+      prog = prog.filter((x) => x !== p); saveProg();
+      if (cur === p) cur = null;
+      render();
+      return;
+    }
+    const op = e.target.closest("[data-open]");
+    if (op && !e.target.closest("button")) {
+      cur = prog.find((x) => x.key === op.dataset.open) || null;
+      render();
+      $("#j-grow").scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     const b = e.target.closest("[data-del]");
     if (!b || b.disabled) return;
     if (b.dataset.armed !== "1") {

@@ -149,7 +149,12 @@ body.noscroll{overflow:hidden}
 .mine-list{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .mine-list li{display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;border-bottom:1px dashed var(--line);padding:6px 0;font-size:15px}
 .mine-list .mi{width:24px;height:24px}
-.mine-list .mb{overflow-wrap:anywhere}
+.mine-list .mb{overflow-wrap:anywhere;display:grid}
+.mine-list .mb small{font-size:12px;color:var(--muted)}
+.mine-list li.growing{cursor:pointer;border-radius:10px}
+.mine-list li.growing:hover{background:#F7FAF4}
+.mine-list li.cur{background:#F4FAEF}
+#j-big-apple{cursor:pointer}
 .mine-del{border:1.5px solid var(--line);background:#fff;color:var(--muted);border-radius:999px;padding:3px 11px;font-size:13px;font-weight:600}
 .mine-del.armed{border-color:#FF3B3B;background:#FFECEC;color:#D94322}
 .spark{position:fixed;left:0;top:0;width:12px;height:12px;margin:-6px;border-radius:50%;background:#FF3B3B;z-index:70;pointer-events:none}
@@ -353,14 +358,14 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
         <div class="grow-name" id="j-grow-name"></div>
         <div class="grow-hint" id="j-grow-hint"></div>
         <div class="steps" id="j-steps"></div>
-        <button class="link cancel" type="button" id="j-cancel">Cancel</button>
+        <button class="link cancel" type="button" id="j-cancel">Save &amp; close</button>
       </div>
     </section>
 
     <section class="card mine">
-      <h2>My red fruits</h2>
+      <h2>My fruits</h2>
       <ul class="mine-list" id="j-mine"></ul>
-      <p class="muted" id="j-mine-empty">None yet. Make your first fruit red above.</p>
+      <p class="muted" id="j-mine-empty">None yet. Type a name above to plant your first fruit.</p>
     </section>
   </div>
 </main>
@@ -466,6 +471,6 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="../config.js?v=18"></script>
-<script type="module" src="app.js?v=8"></script>
+<script type="module" src="app.js?v=9"></script>
 </body>
 </html>
