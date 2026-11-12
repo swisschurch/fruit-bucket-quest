@@ -398,6 +398,7 @@ function startScreen() {
   const toEnd = () => { if (vid.duration) { vid.pause(); vid.currentTime = Math.max(0, vid.duration - 0.05); } };
   vid.addEventListener("loadedmetadata", toEnd);
   vid.addEventListener("ended", toEnd);
+  if (vid.readyState >= 1) toEnd(); // metadata may already be loaded before this script runs
   function replay() {
     try { vid.currentTime = 0; const p = vid.play(); if (p) p.catch(() => {}); } catch {}
   }
@@ -408,7 +409,14 @@ function startScreen() {
       const deny = (e) => adminDenied($("#s-login"), $("#s-login-msg"), e);
       backend.watchGame((g) => { game = g; drawTeams(); drawFeed(); }, deny);
       backend.watchFruits((list) => { fruits = list; stats = computeStats(list); drawTeams(); if (!loaded) { loaded = true; drawTeams(); } drawFeed(); }, deny);
-      backend.watchCare((list) => { care = list; drawFeed(); }, deny);
+      // every Water / Nourish / Sunlight tap replays the film (taps already there when the screen opens don't)
+      let careSeen = null;
+      backend.watchCare((list) => {
+        care = list;
+        if (careSeen && list.some((c) => !careSeen.has(c.id))) replay();
+        careSeen = new Set(list.map((c) => c.id));
+        drawFeed();
+      }, deny);
     },
   });
 
