@@ -94,13 +94,55 @@ body:has(#view-join:not([hidden])){background:#fff}
 #j-big-apple .body{transition:fill .7s}
 .grow-name{font-family:var(--f-display);font-weight:600;font-size:24px;overflow-wrap:anywhere}
 .grow-hint{color:var(--muted);font-size:15px;min-height:1.5em}
-.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;margin-top:6px}
+.steps{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:100%;margin-top:6px}
 .step-btn{position:relative;border:2px solid var(--line);background:#fff;border-radius:18px;padding:14px 4px 10px;display:grid;justify-items:center;gap:4px;font-family:var(--f-display);font-weight:600;font-size:16px;transition:transform .08s}
 .step-btn:active:not(:disabled){transform:scale(.94)}
 .step-btn.water{border-color:#bcd9f2;background:#f3f9fe} .step-btn.nourish{border-color:#CDE6B0;background:#F4FAEA} .step-btn.sun{border-color:#FFD3AE;background:#FFF5EC}
 .step-ic{width:40px;height:40px}
 .step-btn.water .step-ic{color:var(--water)} .step-btn.nourish .step-ic{color:var(--nourish)} .step-btn.sun .step-ic{color:var(--sun)}
 .step-btn:disabled{opacity:.5;cursor:default}
+.step-btn small{font-family:var(--f-body);font-weight:600;font-size:12px;color:var(--muted);margin-top:-4px}
+.step-btn.bug{border-color:#E7C3B0;background:#FDF4EE} .step-btn.bug .step-ic{color:#8A5A3B}
+svg.bug{color:#8A5A3B}
+body.noscroll{overflow:hidden}
+.sheet{position:fixed;inset:0;z-index:80;background:rgba(20,30,20,0);display:flex;align-items:flex-end;justify-content:center;transition:background .3s}
+.sheet.on{background:rgba(20,30,20,.45)}
+.sheet-card{width:100%;max-width:520px;max-height:88vh;overflow:auto;background:#fff;border-radius:24px 24px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));transform:translateY(100%);transition:transform .3s cubic-bezier(.2,.8,.2,1);display:grid;gap:12px;overscroll-behavior:contain}
+.sheet.on .sheet-card{transform:none}
+.sheet-head{display:grid;grid-template-columns:44px 1fr 36px;gap:10px;align-items:center}
+.sheet-ic{width:44px;height:44px;padding:7px;border-radius:14px;background:#F4F8F1}
+.sheet-ic.water{color:var(--water);background:#F3F9FE}.sheet-ic.nourish{color:var(--nourish)}.sheet-ic.sun{color:var(--sun);background:#FFF5EC}.sheet-ic.bug{color:#8A5A3B;background:#FDF4EE}
+.sheet-head h2{font-size:19px;line-height:1.2}
+.sheet-head p{margin:2px 0 0;font-size:14px;color:var(--muted)}
+.sheet-x{border:0;background:#f3f3f1;border-radius:50%;width:36px;height:36px;font-size:22px;line-height:1;color:var(--muted)}
+.sheet-prog{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}
+.sheet-prog .bar{flex:1;height:10px}
+.sheet-prog .bar>i{background:var(--sun)}
+.sheet.water .sheet-prog .bar>i{background:var(--water)}.sheet.nourish .sheet-prog .bar>i{background:var(--nourish)}.sheet.bug .sheet-prog .bar>i{background:#8A5A3B}
+.sheet-list{display:grid;gap:8px}
+.chk{display:grid;grid-template-columns:30px 1fr;gap:12px;align-items:start;border:2px solid var(--line);border-radius:16px;padding:12px;cursor:pointer;transition:border-color .2s,background .2s}
+.chk input{position:absolute;opacity:0;pointer-events:none}
+.chk .box{width:28px;height:28px;border-radius:9px;border:2px solid #cfd6cc;background:#fff;display:grid;place-items:center;transition:.2s}
+.chk .box::after{content:"";width:8px;height:14px;border:solid #fff;border-width:0 3px 3px 0;transform:rotate(45deg) scale(0);margin-top:-3px;transition:transform .2s cubic-bezier(.2,1.6,.4,1)}
+.chk input:checked + .box{background:#57A346;border-color:#57A346}
+.chk input:checked + .box::after{transform:rotate(45deg) scale(1)}
+.chk:has(input:checked){border-color:#B9DCA8;background:#F4FAEF}
+.chk input:focus-visible + .box{outline:3px solid #FFEA80;outline-offset:2px}
+.chk .txt{display:grid;gap:2px}
+.chk .txt b{font-family:var(--f-display);font-weight:600;font-size:16px;line-height:1.25}
+.chk .txt span{font-size:14px;color:var(--muted);line-height:1.4}
+.sheet-note{margin:0;font-size:12px;color:var(--muted);background:#FFF6F6;border:1px solid #FFD9D9;border-radius:12px;padding:10px 12px}
+.fx{position:fixed;inset:0;z-index:90;pointer-events:none;display:grid;place-items:center;transition:opacity .5s}
+.fx.out{opacity:0}
+.fx-card{display:grid;justify-items:center;gap:8px;background:rgba(255,255,255,.94);border-radius:28px;padding:22px 30px;box-shadow:0 16px 50px rgba(0,0,0,.2);animation:fxIn .7s cubic-bezier(.2,1.5,.4,1) both;z-index:2}
+.fx-card b{font-family:var(--f-display);font-weight:700;font-size:26px;color:var(--ink);white-space:nowrap}
+.fx-ic{width:72px;height:72px}
+.fx-ic.water{color:var(--water)}.fx-ic.nourish{color:var(--nourish)}.fx-ic.sun{color:var(--sun);animation:spin 3s linear infinite}.fx-ic.bug{color:#8A5A3B}
+.fx-p{position:fixed;left:0;top:0}
+.fx-p svg{width:100%;height:100%}
+.fx.water .fx-p{color:var(--water)}.fx.nourish .fx-p{color:var(--nourish)}.fx.sun .fx-p{color:var(--sun)}.fx.bug .fx-p{color:#8A5A3B}
+@keyframes fxIn{0%{transform:scale(.3);opacity:0}100%{transform:none;opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
 .step-btn .ok{position:absolute;top:6px;right:9px;color:var(--apple);font-size:16px}
 .cancel{margin-top:6px}
 .mine h2{font-size:18px;margin-bottom:8px}
@@ -234,6 +276,13 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
       <path d="M24 22 C24 12 32 6 42 7 C42 17 35 23 24 22Z" fill="currentColor" opacity=".8"/>
       <path d="M12 44 h24" stroke="#8a5a2b" stroke-width="3.4" stroke-linecap="round"/>
     </symbol>
+    <symbol id="i-bug" viewBox="0 0 48 48">
+      <g stroke="currentColor" stroke-width="2.6" stroke-linecap="round" fill="none"><path d="M19 13 L14 6 M29 13 L34 6 M13 24 H5 M35 24 H43 M14 32 L7 38 M34 32 L41 38 M14 18 L8 14 M34 18 L40 14"/></g>
+      <ellipse cx="24" cy="27" rx="11" ry="14" fill="currentColor"/>
+      <circle cx="24" cy="13.5" r="6" fill="currentColor"/>
+      <path d="M24 15 V41" stroke="#fff" stroke-width="1.6" opacity=".6"/>
+      <circle cx="19" cy="24" r="2.2" fill="#fff" opacity=".55"/><circle cx="29" cy="30" r="2.2" fill="#fff" opacity=".55"/>
+    </symbol>
     <symbol id="i-sun" viewBox="0 0 48 48">
       <circle cx="24" cy="24" r="9" fill="currentColor"/>
       <g stroke="currentColor" stroke-width="3.4" stroke-linecap="round"><path d="M24 4v6M24 38v6M4 24h6M38 24h6M9.9 9.9l4.2 4.2M33.9 33.9l4.2 4.2M9.9 38.1l4.2-4.2M33.9 14.1l4.2-4.2"/></g>
@@ -286,8 +335,8 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
     <section class="card ripen">
       <div id="j-pick">
         <h2>Make a fruit red</h2>
-        <p>Think of one person. Give them water, nourishment and sunlight, and their fruit turns red for your team.</p>
-        <div class="rules"><svg class="water"><use href="#i-water"/></svg> + <svg class="nourish"><use href="#i-sprout"/></svg> + <svg class="sun"><use href="#i-sun"/></svg> <span class="arrow">→</span> <svg><use href="#i-apple-red"/></svg> +1 for your team</div>
+        <p>Think of one person. Go through the four checklists for them: water, nourish, sunlight and catch the bugs. When all four are done, their fruit turns red for your team.</p>
+        <div class="rules"><svg class="water"><use href="#i-water"/></svg> + <svg class="nourish"><use href="#i-sprout"/></svg> + <svg class="sun"><use href="#i-sun"/></svg> + <svg class="bug"><use href="#i-bug"/></svg> <span class="arrow">→</span> <svg><use href="#i-apple-red"/></svg> +1 for your team</div>
         <form id="j-pick-form" autocomplete="off">
           <div class="field"><label for="j-fruit-name">Person's name</label><input id="j-fruit-name" maxlength="20" placeholder="e.g. Marco Rossi"></div>
           <button class="btn" type="submit">Start ripening</button>
@@ -326,7 +375,7 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
       <div class="scr-title">
         <div class="game">Game 2</div>
         <h1 id="s-title">The Ripening Quest</h1>
-        <p><svg class="water"><use href="#i-water"/></svg> + <svg class="nourish"><use href="#i-sprout"/></svg> + <svg class="sun"><use href="#i-sun"/></svg> → <svg><use href="#i-apple-red"/></svg> Make every fruit red</p>
+        <p><svg class="water"><use href="#i-water"/></svg> + <svg class="nourish"><use href="#i-sprout"/></svg> + <svg class="sun"><use href="#i-sun"/></svg> + <svg class="bug"><use href="#i-bug"/></svg> → <svg><use href="#i-apple-red"/></svg> Make every fruit red</p>
       </div>
       <div class="scr-right">
       <div class="scr-total glass">
@@ -403,11 +452,20 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
   </div>
 </main>
 
+<div class="sheet" id="j-sheet" hidden role="dialog" aria-modal="true" aria-labelledby="j-sheet-title">
+  <div class="sheet-card">
+    <div class="sheet-head"><span id="j-sheet-ic"></span><div><h2 id="j-sheet-title"></h2><p id="j-sheet-for"></p></div>
+      <button type="button" class="sheet-x" id="j-sheet-close" aria-label="Close">×</button></div>
+    <div class="sheet-prog"><div class="bar"><i id="j-sheet-bar"></i></div><span class="num" id="j-sheet-count"></span></div>
+    <div class="sheet-list" id="j-sheet-list"></div>
+    <p class="sheet-note">A single unticked item does not decide a person's suitability. Consider consent, personal circumstances and realistic participation. Do not exclude anyone solely because of a health condition, disability, faith or identity.</p>
+  </div>
+</div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="demo-flag" id="demo-flag" hidden>Demo mode · saved in this browser only</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="../config.js?v=18"></script>
-<script type="module" src="app.js?v=6"></script>
+<script type="module" src="app.js?v=7"></script>
 </body>
 </html>

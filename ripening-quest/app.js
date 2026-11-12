@@ -5,10 +5,34 @@ const CFG = window.HARVEST_CONFIG || {};
 const FB_VER = "10.12.2";
 const TEAM_IDS = ["t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8"];
 const ZONE_IDS = ["z1", "z2", "z3", "z4", "z5"];
+// Four steps, each one section of the Worthy Person Checklist. All items ticked = step done.
 const STEPS = [
-  { id: "water", name: "Water", icon: "i-water", did: "gave water to" },
-  { id: "nourish", name: "Nourish", icon: "i-sprout", did: "nourished" },
-  { id: "sun", name: "Sunlight", icon: "i-sun", did: "gave sunlight to" },
+  { id: "water", name: "Water", sub: "Character", icon: "i-water", did: "gave water to", done: "Watering complete!",
+    title: "Character & Personal Qualities", items: [
+      ["Emotional Well-being", "Can the person participate comfortably and constructively in conversations and activities?"],
+      ["Learning & Understanding", "Can they understand key points and respond meaningfully to questions?"],
+      ["Independence & Relationships", "Can they make their own decisions and participate without undue pressure from others?"],
+    ] },
+  { id: "nourish", name: "Nourish", sub: "Faith", icon: "i-sprout", did: "nourished", done: "Nourishing complete!",
+    title: "Faith Background", items: [
+      ["Faith Background", "Can they freely decide whether to explore faith, regardless of their current religious background?"],
+      ["Interest in the Bible", "Are they interested in learning about or discussing the Bible?"],
+    ] },
+  { id: "sun", name: "Sunlight", sub: "Environment", icon: "i-sun", did: "gave sunlight to", done: "Sunlight complete!",
+    title: "Environment & Availability", items: [
+      ["Regular Meetings", "Can they meet regularly (around two or three times per week)?"],
+      ["Residence & Distance", "Can they travel to the meeting location regularly without undue difficulty?"],
+      ["Plans for the Next Year", "Are their plans for the coming year compatible with meeting regularly?"],
+      ["Studies & Frequent Business Travel", "Can they attend meetings regularly despite study commitments or frequent work-related travel?"],
+      ["In-Person Attendance", "Can they attend the planned in-person sessions regularly, with reasonable adjustments if needed?"],
+    ] },
+  { id: "bug", name: "Catch bugs", sub: "Special", icon: "i-bug", did: "caught the bugs for", done: "Bugs caught!",
+    title: "Special Considerations", items: [
+      ["Keeping Appointments", "Do they generally keep appointments and, if unable to attend, communicate considerately and apologise?"],
+      ["Financial Practicality", "Can they take part regularly without financial difficulties making attendance impractical?"],
+      ["Business & Other Risks", "Do they avoid illegal business activities, exploitative schemes, or harmful gambling?"],
+      ["Returning Participants", "If they previously left a course, have the reasons and any barriers to returning been clarified? (Tick if it doesn't apply.)"],
+    ] },
 ];
 const STEP_OF = Object.fromEntries(STEPS.map((x) => [x.id, x]));
 const FEED_MAX = 50;
@@ -89,7 +113,7 @@ function setBar(sel, ratio) {
   el.querySelector("i").style.width = `${Math.min(100, Math.max(0, ratio * 100))}%`;
 }
 // apple colour for 0..3 steps done
-const STEP_COLORS = ["#57A346", "#C5E15A", "#FF984A", "#FF3B3B"];
+const STEP_COLORS = ["#57A346", "#97C753", "#C5E15A", "#FF984A", "#FF3B3B"];
 
 // ---------- data: demo (browser storage) ----------
 function makeDemoBackend() {
@@ -263,9 +287,10 @@ function startJoin() {
       const n = cur.done.size;
       $("#j-grow-name").textContent = cur.fruit;
       $("#j-big-apple path.body").setAttribute("fill", STEP_COLORS[n]);
-      $("#j-grow-hint").textContent = n === 0 ? "Tap all three to make it red" : n === 1 ? "Two more!" : "One more and it's red!";
+      const left = STEPS.length - n;
+      $("#j-grow-hint").textContent = n === 0 ? "Complete all four to make it red" : left === 0 ? "It's red!" : left === 1 ? "One more and it's red!" : left === 2 ? "Two more!" : "Three more!";
       $("#j-steps").innerHTML = STEPS.map((s) => `<button type="button" class="step-btn ${s.id}" data-step="${s.id}" ${cur.done.has(s.id) ? "disabled" : ""}>
-        ${svg(s.icon, "step-ic")}<span>${s.name}</span>${cur.done.has(s.id) ? `<b class="ok">✓</b>` : ""}</button>`).join("");
+        ${svg(s.icon, "step-ic")}<span>${s.name}</span><small>${s.sub}</small>${cur.done.has(s.id) ? `<b class="ok">✓</b>` : ""}</button>`).join("");
     }
 
     const list = myLocal().slice().reverse();
@@ -285,34 +310,105 @@ function startJoin() {
   $("#j-sugg").addEventListener("click", (e) => { const b = e.target.closest("[data-name]"); if (b) startFruit(b.dataset.name); });
   $("#j-cancel").addEventListener("click", () => { cur = null; render(); });
 
-  $("#j-steps").addEventListener("click", async (e) => {
+  // ---- checklist sheet: a step is done when every item of its section is ticked ----
+  const sheet = $("#j-sheet");
+  let open = null; // step id
+  $("#j-steps").addEventListener("click", (e) => {
     const b = e.target.closest("[data-step]");
     if (!b || b.disabled || !cur) return;
-    cur.done.add(b.dataset.step);
-    backend.addCare({ team: profile.team, zone: profile.zone, harvester: profile.name, fruit: cur.fruit, kind: b.dataset.step }).catch((e) => console.warn("care", e));
+    openSheet(STEP_OF[b.dataset.step]);
+  });
+  function openSheet(st) {
+    open = st.id;
+    sheet.className = "sheet " + st.id;
+    $("#j-sheet-ic").innerHTML = svg(st.icon, "sheet-ic " + st.id);
+    $("#j-sheet-title").textContent = `${st.name} · ${st.title}`;
+    $("#j-sheet-for").textContent = `For ${cur.fruit}: tick each one that is true.`;
+    $("#j-sheet-list").innerHTML = st.items.map(([t, q], i) => `
+      <label class="chk"><input type="checkbox" data-i="${i}"><span class="box"></span>
+        <span class="txt"><b>${esc(t)}</b><span>${esc(q)}</span></span></label>`).join("");
+    updateSheet();
+    sheet.hidden = false;
+    document.body.classList.add("noscroll");
+    requestAnimationFrame(() => sheet.classList.add("on"));
+  }
+  function closeSheet() {
+    open = null;
+    sheet.classList.remove("on");
+    document.body.classList.remove("noscroll");
+    setTimeout(() => { if (!open) sheet.hidden = true; }, 300);
+  }
+  function updateSheet() {
+    const boxes = [...$("#j-sheet-list").querySelectorAll("input")];
+    const n = boxes.filter((x) => x.checked).length;
+    $("#j-sheet-count").textContent = `${n} / ${boxes.length}`;
+    $("#j-sheet-bar").style.width = `${(n / boxes.length) * 100}%`;
+    return n === boxes.length;
+  }
+  $("#j-sheet-list").addEventListener("change", () => {
+    if (!updateSheet() || !open) return;
+    const st = STEP_OF[open];
+    open = null;
+    setTimeout(() => { closeSheet(); completeStep(st); }, 450);
+  });
+  $("#j-sheet-close").addEventListener("click", closeSheet);
+  sheet.addEventListener("click", (e) => { if (e.target === sheet) closeSheet(); });
+
+  async function completeStep(st) {
+    if (!cur || cur.done.has(st.id)) return;
+    cur.done.add(st.id);
+    backend.addCare({ team: profile.team, zone: profile.zone, harvester: profile.name, fruit: cur.fruit, kind: st.id }).catch((e) => console.warn("care", e));
     render();
     const ap = $("#j-big-apple");
+    stepFx(st, ap);
     ap.animate([{ transform: "scale(1)" }, { transform: "scale(1.15)" }, { transform: "scale(1)" }], { duration: 450, easing: "ease-out" });
     if (cur.done.size < STEPS.length) return;
 
-    // all three done: it's red -> save it for the team
+    // all four done: it's red -> save it for the team
     const f = cur;
+    const b = { dataset: { step: st.id } };
     $("#j-steps").querySelectorAll("button").forEach((x) => (x.disabled = true));
     try {
       const id = await backend.addFruit({ team: profile.team, zone: profile.zone, harvester: profile.name, fruit: f.fruit });
       mine.push({ id, team: profile.team, zone: profile.zone, name: profile.name, fruit: f.fruit, ts: Date.now() });
       store.set("ripen-mine", mine);
       if (stats && !backend.live) { stats.total++; const T = stats.teams[profile.team]; if (T) { T.total++; T.zones[profile.zone]++; } }
-      burst(ap);
-      toast(`${f.fruit} is red! +1 for ${teamOf(game, profile.team)?.name || "your team"}`);
-      setTimeout(() => { cur = null; render(); }, 1100);
+      setTimeout(() => { burst(ap); toast(`${f.fruit} is red! +1 for ${teamOf(game, profile.team)?.name || "your team"}`); }, 1400);
+      setTimeout(() => { cur = null; render(); }, 2600);
     } catch (err) {
       console.error(err);
       cur.done.delete(b.dataset.step);
       render();
       toast("Couldn't save. Check your internet connection and tap again.", true);
     }
-  });
+  }
+
+  // Full-screen effect for a finished step: water rains, leaves rise, sun rays spin, bugs fly away
+  function stepFx(st, apple) {
+    const fx = document.createElement("div");
+    fx.className = "fx " + st.id;
+    fx.innerHTML = `<div class="fx-card">${svg(st.icon, "fx-ic " + st.id)}<b>${esc(st.done)}</b></div>`;
+    document.body.appendChild(fx);
+    const W = innerWidth, H = innerHeight;
+    const r = apple.getBoundingClientRect(), ax = r.left + r.width / 2, ay = r.top + r.height / 2;
+    for (let i = 0; i < 22; i++) {
+      const p = document.createElement("div");
+      p.className = "fx-p";
+      p.innerHTML = svg(st.icon, st.id);
+      fx.appendChild(p);
+      const sz = 18 + Math.random() * 22, d = 1100 + Math.random() * 700, delay = Math.random() * 400;
+      p.style.width = p.style.height = sz + "px";
+      let kf;
+      if (st.id === "water") { const x = Math.random() * W; kf = [{ transform: `translate(${x}px,-40px)`, opacity: 0 }, { opacity: 1, offset: .15 }, { transform: `translate(${x}px,${H + 40}px)`, opacity: .9 }]; }
+      else if (st.id === "nourish") { const x = Math.random() * W; kf = [{ transform: `translate(${x}px,${H + 30}px) rotate(-20deg)`, opacity: 0 }, { opacity: 1, offset: .2 }, { transform: `translate(${x + (Math.random() - .5) * 120}px,${H * .25}px) rotate(25deg)`, opacity: 0 }]; }
+      else { const a = Math.random() * Math.PI * 2, dist = Math.max(W, H) * (.35 + Math.random() * .3);
+        kf = [{ transform: `translate(${ax - sz / 2}px,${ay - sz / 2}px) scale(.4)`, opacity: 1 }, { transform: `translate(${ax - sz / 2 + Math.cos(a) * dist}px,${ay - sz / 2 + Math.sin(a) * dist}px) scale(1) rotate(${st.id === "bug" ? 360 : 90}deg)`, opacity: 0 }]; }
+      p.animate(kf, { duration: d, delay, easing: "cubic-bezier(.3,.6,.4,1)", fill: "both" });
+    }
+    if (navigator.vibrate) try { navigator.vibrate(60); } catch {}
+    setTimeout(() => fx.classList.add("out"), 1500);
+    setTimeout(() => fx.remove(), 2100);
+  }
 
   function burst(el) {
     const r = el.getBoundingClientRect();

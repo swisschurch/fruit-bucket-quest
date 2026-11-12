@@ -1,5 +1,5 @@
 rules_version = '2';
-// Zurich Fruit Bucket Quest + Red Fruit Quest (Game 2) security rules
+// Zurich Fruit Bucket Quest + The Ripening Quest (Game 2) security rules
 // Replace the host email below with your Google account, paste everything into
 // Firebase console > Firestore > Rules, and click Publish.
 // For several hosts: ['a@gmail.com', 'b@gmail.com']
@@ -37,7 +37,7 @@ service cloud.firestore {
         && request.resource.data.ts == request.time;
     }
 
-    // Game 2 (Red Fruit Quest): one record per red fruit. Same pattern as buckets.
+    // Game 2 (The Ripening Quest): one record per red fruit. Same pattern as buckets.
     match /redfruits/{fruitId} {
       allow read, update: if isAdmin();
       allow delete: if true;
@@ -50,7 +50,7 @@ service cloud.firestore {
         && request.resource.data.ts == request.time;
     }
 
-    // Game 2 feed: each Water / Nourish / Sunlight tap (shown on the big screen)
+    // Game 2 feed: each Water / Nourish / Sunlight / Catch bugs step (shown on the big screen)
     match /care2/{careId} {
       allow read, update, delete: if isAdmin();
       allow create: if request.resource.data.keys().hasOnly(['team', 'zone', 'harvester', 'fruit', 'kind', 'ts'])
@@ -59,7 +59,7 @@ service cloud.firestore {
         && request.resource.data.zone in ['z1', 'z2', 'z3', 'z4', 'z5']
         && okText(request.resource.data.harvester)
         && okText(request.resource.data.fruit)
-        && request.resource.data.kind in ['water', 'nourish', 'sun']
+        && request.resource.data.kind in ['water', 'nourish', 'sun', 'bug']
         && request.resource.data.ts == request.time;
     }
   }
