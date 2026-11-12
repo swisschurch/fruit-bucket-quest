@@ -127,6 +127,8 @@ function makeDemoBackend() {
     async addFruit(f) { const s = load(); const id = Math.random().toString(36).slice(2, 10); s.fruits.push({ ...f, id, ts: Date.now() }); save(s); return id; },
     async deleteFruit(id) { const s = load(); s.fruits = s.fruits.filter((f) => f.id !== id); save(s); },
     async resetAll() { const s = load(); s.fruits = []; s.care = []; save(s); },
+    async clearCare() { const s = load(); s.care = []; save(s); },
+    async deleteCareFor(f) { const s = load(); s.care = s.care.filter((c) => !(c.team === f.team && c.zone === f.zone && c.harvester === f.harvester && c.fruit === f.fruit)); save(s); },
     async addCare(c) { const s = load(); s.care.push({ ...c, id: Math.random().toString(36).slice(2, 10), ts: Date.now() }); s.care = s.care.slice(-CARE_MAX); save(s); },
     watchCare(cb) { return sub(() => cb([...load().care].sort((a, b) => b.ts - a.ts))); },
     watchPublic(cb) { return sub(() => { const s = load(); cb({ game: normalizeGame(g1(), s.cfg), stats: computeStats(s.fruits) }); }); },
@@ -183,13 +185,21 @@ function makeFirebaseBackend(conf) {
     },
     async saveCfg(c) { await fs.setDoc(fs.doc(db, "public", "config2"), c); },
     async writeSummary(sum) { await fs.setDoc(fs.doc(db, "public", "summary2"), { ...sum, updatedAt: fs.serverTimestamp() }); },
-    async resetAll() {
-      const snap = { docs: [...(await fs.getDocs(fs.collection(db, "redfruits"))).docs, ...(await fs.getDocs(fs.collection(db, "care2"))).docs] };
-      for (let i = 0; i < snap.docs.length; i += 400) {
+    async _deleteAll(docs) {
+      for (let i = 0; i < docs.length; i += 400) {
         const batch = fs.writeBatch(db);
-        snap.docs.slice(i, i + 400).forEach((d) => batch.delete(d.ref));
+        docs.slice(i, i + 400).forEach((d) => batch.delete(d.ref));
         await batch.commit();
       }
+    },
+    async resetAll() {
+      await this._deleteAll([...(await fs.getDocs(fs.collection(db, "redfruits"))).docs, ...(await fs.getDocs(fs.collection(db, "care2"))).docs]);
+    },
+    async clearCare() { await this._deleteAll((await fs.getDocs(fs.collection(db, "care2"))).docs); },
+    // the feed lines that belong to one fruit (same person, same name)
+    async deleteCareFor(f) {
+      const q = fs.query(fs.collection(db, "care2"), fs.where("team", "==", f.team), fs.where("zone", "==", f.zone), fs.where("harvester", "==", f.harvester), fs.where("fruit", "==", f.fruit));
+      await this._deleteAll((await fs.getDocs(q)).docs);
     },
   };
 }
@@ -755,7 +765,12 @@ function startAdmin() {
     const b = e.target.closest("[data-del]");
     if (!b) return;
     if (b.dataset.armed !== "1") { b.dataset.armed = "1"; b.textContent = "Confirm"; setTimeout(() => { b.dataset.armed = ""; b.textContent = "Delete"; }, 3000); return; }
-    try { await backend.deleteFruit(b.dataset.del); toast("Deleted"); } catch { toast("Couldn't delete", true); }
+    const f = fruits.find((x) => x.id === b.dataset.del);
+    try {
+      await backend.deleteFruit(b.dataset.del);
+      if (f) await backend.deleteCareFor(f).catch((err) => console.warn("care", err));
+      toast("Deleted, with its lines on the big screen feed");
+    } catch { toast("Couldn't delete", true); }
   });
 
   $("#a-csv").onclick = () => {
@@ -772,6 +787,14 @@ function startAdmin() {
   $("#a-reset").onclick = async () => {
     $("#a-reset").disabled = true;
     try { await backend.resetAll(); $("#a-reset-text").value = ""; toast("All red fruits deleted"); } catch { toast("Couldn't reset", true); }
+  };
+
+  $("#a-clear-feed").onclick = async (e) => {
+    const b = e.currentTarget;
+    if (b.dataset.armed !== "1") { b.dataset.armed = "1"; b.textContent = "Tap again to clear"; setTimeout(() => { b.dataset.armed = ""; b.textContent = "Clear the big-screen feed"; }, 3000); return; }
+    b.disabled = true;
+    try { await backend.clearCare(); toast("Feed cleared. Red fruits are not touched."); } catch { toast("Couldn't clear the feed", true); }
+    finally { b.disabled = false; b.dataset.armed = ""; b.textContent = "Clear the big-screen feed"; }
   };
 
   $("#a-demo").onclick = async () => {

@@ -446,13 +446,14 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
       </table></div>
       <div class="row-actions">
         <button class="btn ghost" id="a-csv">Download CSV</button>
+        <button class="btn ghost" id="a-clear-feed">Clear the big-screen feed</button>
         <button class="btn ghost" id="a-demo" hidden>Add 30 sample red fruits (demo only)</button>
       </div>
     </section>
     <section class="danger">
       <h2 style="margin:0">Reset</h2>
-      <p class="muted" style="margin:0">Deletes every red fruit. The bucket game is not touched. Type <b>RESET</b> to enable the button.</p>
-      <div class="row-actions" style="margin:0"><input id="a-reset-text" placeholder="RESET" aria-label="Type RESET to confirm"><button class="btn" id="a-reset" disabled>Delete all red fruits</button></div>
+      <p class="muted" style="margin:0">Deletes every red fruit and every line on the big-screen feed. The bucket game is not touched. Type <b>RESET</b> to enable the button.</p>
+      <div class="row-actions" style="margin:0"><input id="a-reset-text" placeholder="RESET" aria-label="Type RESET to confirm"><button class="btn" id="a-reset" disabled>Delete everything</button></div>
     </section>
   </div>
 </main>
@@ -471,6 +472,6 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="../config.js?v=18"></script>
-<script type="module" src="app.js?v=10"></script>
+<script type="module" src="app.js?v=11"></script>
 </body>
 </html>
