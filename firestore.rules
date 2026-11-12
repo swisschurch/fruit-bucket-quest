@@ -1,5 +1,5 @@
 rules_version = '2';
-// Zurich Fruit Bucket Quest security rules
+// Zurich Fruit Bucket Quest + Worthy Fruit (Game 2) security rules
 // Replace the host email below with your Google account, paste everything into
 // Firebase console > Firestore > Rules, and click Publish.
 // For several hosts: ['a@gmail.com', 'b@gmail.com']
@@ -34,6 +34,22 @@ service cloud.firestore {
         && okText(request.resource.data.harvester)
         && okText(request.resource.data.basket)
         && okText(request.resource.data.relation)
+        && request.resource.data.ts == request.time;
+    }
+
+    // Game 2 (Worthy Fruit) care records: one tap of Water / Nourish / Sunlight on one fruit.
+    // A fruit is identified only by its one-way code, never by a name. Same pattern as buckets.
+    match /care/{careId} {
+      allow read, update: if isAdmin();
+      allow delete: if true;
+      allow create: if request.resource.data.keys().hasOnly(['team', 'zone', 'harvester', 'fruit', 'kind', 'ts'])
+        && request.resource.data.keys().hasAll(['team', 'zone', 'harvester', 'fruit', 'kind', 'ts'])
+        && request.resource.data.team in ['t1', 't2', 't3', 't4', 't5', 't6', 't7', 't8']
+        && request.resource.data.zone in ['z1', 'z2', 'z3', 'z4', 'z5']
+        && okText(request.resource.data.harvester)
+        && request.resource.data.fruit is string
+        && request.resource.data.fruit.matches('^[0-9a-f]{24}$')
+        && request.resource.data.kind in ['water', 'nourish', 'sun']
         && request.resource.data.ts == request.time;
     }
   }
