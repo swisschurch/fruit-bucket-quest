@@ -471,11 +471,11 @@ function startScreen() {
       showing[id] = v;
       const cnt = card.querySelector(".cnt");
       cnt.textContent = v;
-      cnt.animate([{ transform: "scale(1.6)", color: "#ffd23f" }, { transform: "scale(1)", color: "#fff" }], { duration: 600, easing: "cubic-bezier(.2,1.4,.4,1)" });
+      cnt.animate([{ transform: "scale(1.6)", color: "#ffe45c" }, { transform: "scale(1)", color: "#fff" }], { duration: 600, easing: "cubic-bezier(.2,1.4,.4,1)" });
       if (v < target) ripenPop[id] = setTimeout(step, 250);
       else delete showing[id];
     }, 700);
-    card.animate([{ boxShadow: "0 0 0 3px #ffd23f, 0 0 46px rgba(255,210,63,.85)" }, { boxShadow: "0 8px 30px rgba(0,0,0,.18)" }], { duration: 2400, easing: "ease-out" });
+    card.animate([{ boxShadow: "0 0 0 3px #ffe45c, 0 0 46px rgba(255,228,92,.85)" }, { boxShadow: "0 8px 30px rgba(0,0,0,.18)" }], { duration: 2400, easing: "ease-out" });
   }
 
   // Feed: every Water / Nourish / Sunlight tap, plus each fruit that turns red
