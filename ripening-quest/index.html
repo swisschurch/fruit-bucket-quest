@@ -50,7 +50,7 @@ svg.water{color:var(--water)} svg.nourish{color:var(--nourish)} svg.sun{color:va
 
 /* ---------- participant (phone) ---------- */
 body:has(#view-join:not([hidden])){background:#fff}
-#view-join{--cream:#fff;--paper:#fff;--line:#e8dcd6;--muted:#6f6560;max-width:520px;margin:0 auto;padding-block:16px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:14px}
+#view-join{align-content:start;--cream:#fff;--paper:#fff;--line:#e8dcd6;--muted:#6f6560;max-width:520px;margin:0 auto;padding-block:16px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:14px}
 .j-banner{margin:-16px calc(-1 * max(16px,env(safe-area-inset-left,0px))) 0}
 .j-banner img{display:block;width:100%;aspect-ratio:837/476;object-fit:cover}
 .j-banner + .j-brand{margin-top:-28px;position:relative;z-index:1}
@@ -471,6 +471,6 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="../config.js?v=18"></script>
-<script type="module" src="app.js?v=9"></script>
+<script type="module" src="app.js?v=10"></script>
 </body>
 </html>

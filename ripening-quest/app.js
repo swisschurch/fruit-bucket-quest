@@ -143,18 +143,19 @@ function makeFirebaseBackend(conf) {
   const base = `https://www.gstatic.com/firebasejs/${FB_VER}/`;
   return {
     mode: "firebase", live: false,
-    async init() {
+    init() { return (this.ready ||= this._init()); },
+    async _init() {
       const [appM, fsM, auM] = await Promise.all([import(base + "firebase-app.js"), import(base + "firebase-firestore.js"), import(base + "firebase-auth.js")]);
       fs = fsM; au = auM;
       const app = appM.initializeApp(conf);
-      db = fs.getFirestore(app); auth = au.getAuth(app);
+      db = fs.initializeFirestore(app, { experimentalAutoDetectLongPolling: true }); auth = au.getAuth(app);
     },
     onAuth(cb) { au.onAuthStateChanged(auth, (u) => cb(u ? { email: u.email } : null)); },
     async signIn() { await au.signInWithPopup(auth, new au.GoogleAuthProvider()); },
     async signOut() { await au.signOut(auth); },
-    async addFruit(f) { const ref = await fs.addDoc(fs.collection(db, "redfruits"), { ...f, ts: fs.serverTimestamp() }); return ref.id; },
-    async deleteFruit(id) { await fs.deleteDoc(fs.doc(db, "redfruits", id)); },
-    async addCare(c) { await fs.addDoc(fs.collection(db, "care2"), { ...c, ts: fs.serverTimestamp() }); },
+    async addFruit(f) { await this.init(); const ref = await fs.addDoc(fs.collection(db, "redfruits"), { ...f, ts: fs.serverTimestamp() }); return ref.id; },
+    async deleteFruit(id) { await this.init(); await fs.deleteDoc(fs.doc(db, "redfruits", id)); },
+    async addCare(c) { await this.init(); await fs.addDoc(fs.collection(db, "care2"), { ...c, ts: fs.serverTimestamp() }); },
     watchCare(cb, err) {
       const q = fs.query(fs.collection(db, "care2"), fs.orderBy("ts", "desc"), fs.limit(CARE_MAX));
       return fs.onSnapshot(q, (snap) => cb(snap.docs.map((d) => {
@@ -163,6 +164,7 @@ function makeFirebaseBackend(conf) {
       })), err);
     },
     async fetchPublic() {
+      await this.init(); 
       const s = await fs.getDoc(fs.doc(db, "public", "summary2"));
       if (s.exists()) { const d = s.data(); return { game: d.game, stats: d.stats || null }; }
       const [a, b] = await Promise.all([fs.getDoc(fs.doc(db, "public", "config")), fs.getDoc(fs.doc(db, "public", "config2"))]);
@@ -211,7 +213,7 @@ function makeSummaryWriter() {
 // ======================================================================
 // Participant view
 // ======================================================================
-function startJoin() {
+function startJoin(ready = Promise.resolve()) {
   $("#view-join").hidden = false;
   let game = normalizeGame(null, null), stats = null;
   let profile = store.get("harvest-profile", null); // same as the bucket game on this site
@@ -502,14 +504,24 @@ function startJoin() {
     else if ($("#j-main").hidden) showMain();
     else render();
   }
-  if (backend.live) backend.watchPublic(apply);
-  else {
-    const poll = async () => { if (document.hidden) return; try { apply(await backend.fetchPublic()); } catch { $("#j-sync").textContent = "Reconnecting…"; } };
+  // Show the page right away with the default teams; numbers fill in once connected
+  apply({ game: normalizeGame(null, null) });
+  $("#j-sync").textContent = "Connecting…";
+  const timeout = (ms) => new Promise((_, no) => setTimeout(() => no(new Error("timeout")), ms));
+  ready.then(() => {
+    if (backend.live) return backend.watchPublic(apply);
+    let busy = false;
+    const poll = async () => {
+      if (document.hidden || busy) return;
+      busy = true;
+      try { apply(await Promise.race([backend.fetchPublic(), timeout(12000)])); }
+      catch (e) { console.warn("poll", e); $("#j-sync").textContent = "Reconnecting…"; }
+      finally { busy = false; }
+    };
     poll();
     setInterval(poll, Math.max(10, CFG.pollSeconds || 30) * 1000);
     document.addEventListener("visibilitychange", () => { if (!document.hidden) poll(); });
-  }
-  if (profile) $("#j-setup").hidden = true;
+  }, () => { $("#j-sync").textContent = "Offline"; });
 }
 
 // ======================================================================
@@ -776,9 +788,16 @@ function startAdmin() {
 // ======================================================================
 async function boot() {
   if (backend.mode === "demo") $("#demo-flag").hidden = false;
+  const route = location.hash.replace("#", "");
+  if (route !== "screen" && route !== "admin") {
+    // phones: never wait for the network before showing the page
+    const ready = backend.init();
+    ready.catch((e) => { console.error(e); toast("Couldn't connect. Check your internet connection and reload.", true); });
+    startJoin(ready);
+    return;
+  }
   try { await backend.init(); }
   catch (e) { console.error(e); toast("Couldn't connect to Firebase. Check config.js.", true); return; }
-  const route = location.hash.replace("#", "");
   if (route === "screen") startScreen();
   else if (route === "admin") startAdmin();
   else startJoin();
