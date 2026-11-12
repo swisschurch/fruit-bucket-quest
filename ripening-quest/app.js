@@ -1,4 +1,4 @@
-// The Ripening Quest (Game 2) — participant (ripen.html) · big screen (#screen) · host (#admin)
+// The Ripening Quest (Game 2) — participant (ripening-quest/) · big screen (#screen) · host (#admin)
 // Simple rules: pick a person -> give Water, Nourish and Sunlight once each -> the fruit turns red
 // -> +1 red fruit for your team. Teams race to fill their red-fruit goal.
 const CFG = window.HARVEST_CONFIG || {};

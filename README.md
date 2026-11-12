@@ -70,9 +70,9 @@ Firestore 무료(Spark) 요금제는 하루 읽기 5만 회까지입니다. 240�
 
 | 화면 | 주소 |
 |---|---|
-| 참여자 | `.../fruit-bucket-quest/ripen.html` |
-| 대형 스크린 | `.../fruit-bucket-quest/ripen.html#screen` |
-| 진행자 | `.../fruit-bucket-quest/ripen.html#admin` |
+| 참여자 | `https://swisschurch.github.io/fruit-bucket-quest/ripening-quest/` |
+| 대형 스크린 | `https://swisschurch.github.io/fruit-bucket-quest/ripening-quest/#screen` |
+| 진행자 | `https://swisschurch.github.io/fruit-bucket-quest/ripening-quest/#admin` |
 
 - 대형 스크린: 배경은 다람쥐 영상(`assets/ripen.mp4`). 평소에는 마지막 장면(익은 나무)에 멈춰 있고, 누군가 물·양분·햇빛을 하나 줄 때마다 처음부터 다시 재생됩니다. 열매가 빨갛게 익으면 그 팀 이름 위에 "Fruit is ripened!"가 뜨고 팀 숫자가 올라갑니다.
 - 왼쪽 소식판에는 누가 물·양분·햇빛을 주었는지 실시간으로 나옵니다 (예: "Anna Keller gave water to M***o R***i").
@@ -83,5 +83,7 @@ Firestore 무료(Spark) 요금제는 하루 읽기 5만 회까지입니다. 240�
 
 ## 설정 (한 번만)
 1. `firestore.rules` 전체를 Firebase 콘솔 **Firestore > 규칙**에 다시 붙여 넣고 **게시** (`redfruits`, `care2` 규칙이 들어 있음).
-2. `ripen.html#admin`에서 로그인 → 팀별 목표 확인 → **Save settings**.
-3. 게임 중에는 `ripen.html#screen`을 진행자 계정으로 켜 두세요.
+2. `ripening-quest/#admin`에서 로그인 → 팀별 목표 확인 → **Save settings**.
+3. 게임 중에는 `ripening-quest/#screen`을 진행자 계정으로 켜 두세요.
+
+(예전 주소 `ripen.html`로 들어와도 새 주소로 자동으로 넘어갑니다.)
