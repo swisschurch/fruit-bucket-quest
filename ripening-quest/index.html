@@ -123,6 +123,12 @@ body:has(#view-join:not([hidden])){background:#fff}
 @keyframes ripePop{0%{transform:translate(-50%,40%) scale(.3);opacity:0}10%{transform:translate(-50%,-30%) scale(1.12);opacity:1}18%{transform:translate(-50%,-25%) scale(1)}82%{transform:translate(-50%,-25%);opacity:1}100%{transform:translate(-50%,-120%);opacity:0}}
 .feed-item .fr{font-weight:700}
 .glass,.team,.feed-item,.scr-total,.scr-qr{background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(8px) saturate(1.2);backdrop-filter:blur(8px) saturate(1.2);box-shadow:0 8px 30px rgba(0,0,0,.18)}
+.scr-shade,.scr-top,.feed,.teams{transition:opacity .7s ease,transform .7s cubic-bezier(.3,.7,.3,1)}
+#view-screen.film .scr-shade{opacity:0}
+#view-screen.film .scr-top{opacity:0;transform:translateY(-40px)}
+#view-screen.film .feed{opacity:0;transform:translateX(-50px)}
+#view-screen.film .teams{opacity:0;transform:translateY(60px)}
+#view-screen.film .scr-top,#view-screen.film .feed,#view-screen.film .teams{pointer-events:none}
 .scr-wrap{position:relative;height:100%;min-height:100vh;display:grid;grid-template-rows:auto 1fr auto;padding-block:max(1.6vh,12px);padding-left:max(16px,1.6vw);padding-right:max(16px,1.6vw);gap:1.2vh}
 .scr-top{display:flex;align-items:flex-start;justify-content:space-between;gap:2vw}
 .scr-title .game{font-size:clamp(11px,.9vw,16px);letter-spacing:.12em;text-transform:uppercase;text-shadow:0 1px 6px rgba(0,0,0,.6)}
@@ -310,7 +316,7 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
 
 <!-- ===== big screen ===== -->
 <main id="view-screen" class="view" hidden>
-  <video class="scr-video" id="s-video" muted playsinline preload="auto" poster="../assets/ripen-end.jpg" aria-hidden="true"><source src="../assets/ripen.mp4" type="video/mp4"></video>
+  <video class="scr-video" id="s-video" muted playsinline preload="auto" poster="../assets/ripen-end.jpg" aria-hidden="true"><source src="../assets/ripen.mp4?v=2" type="video/mp4"></video>
   <div class="scr-shade"></div>
   <div class="scr-wrap">
     <header class="scr-top">
@@ -399,6 +405,6 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="../config.js?v=18"></script>
-<script type="module" src="app.js?v=4"></script>
+<script type="module" src="app.js?v=5"></script>
 </body>
 </html>

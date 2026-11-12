@@ -397,10 +397,30 @@ function startScreen() {
   const vid = $("#s-video");
   const toEnd = () => { if (vid.duration) { vid.pause(); vid.currentTime = Math.max(0, vid.duration - 0.05); } };
   vid.addEventListener("loadedmetadata", toEnd);
-  vid.addEventListener("ended", toEnd);
   if (vid.readyState >= 1) toEnd(); // metadata may already be loaded before this script runs
+
+  // While the film plays, the boards fade away so the film can be seen; they come back when it ends,
+  // and only then do the "Fruit is ripened!" pop-ups, count-ups and celebrations run.
+  const view = $("#view-screen");
+  let playing = false, safety = null;
+  const waiting = []; // things to show once the boards are back
+  function later(fn) { if (playing) waiting.push(fn); else fn(); }
+  function endFilm() {
+    clearTimeout(safety);
+    toEnd();
+    if (!playing) return;
+    playing = false;
+    view.classList.remove("film");
+    setTimeout(() => { if (!playing) waiting.splice(0).forEach((fn) => fn()); }, 750);
+  }
+  vid.addEventListener("ended", endFilm);
+  vid.addEventListener("error", endFilm);
   function replay() {
-    try { vid.currentTime = 0; const p = vid.play(); if (p) p.catch(() => {}); } catch {}
+    playing = true;
+    view.classList.add("film");
+    clearTimeout(safety);
+    safety = setTimeout(endFilm, ((vid.duration || 10) + 3) * 1000); // never leave the boards hidden
+    try { vid.currentTime = 0; const p = vid.play(); if (p) p.catch(endFilm); } catch { endFilm(); }
   }
 
   withAdmin({
@@ -433,6 +453,7 @@ function startScreen() {
     if (box.children.length !== game.teams.length) box.innerHTML = game.teams.map((t) => `<article class="team glass" data-id="${t.id}"><div class="tc"></div></article>`).join("");
 
     let grew = false;
+    const pops = [];
     game.teams.forEach((t) => {
       const el = box.querySelector(`[data-id="${t.id}"]`);
       const T = stats.teams[t.id], n = T.total, q = t.goal;
@@ -457,15 +478,17 @@ function startScreen() {
         <div class="slots" style="grid-template-columns:repeat(${cols},1fr)">${slots}</div>
         ${n > q ? `<div class="over">+${n - q} extra</div>` : ""}
         <div class="zones">${zones}</div>`;
-      if (up) ripenPop(el, before, n);
-      if (prev && before < q && n >= q) setTimeout(() => celebrate(t.name), 1800);
+      if (up) pops.push(() => ripenPop(el, before, n));
+      if (prev && before < q && n >= q) pops.push(() => setTimeout(() => celebrate(t.name), 1800));
     });
     if (grew) replay();
+    pops.forEach(later);
     if (loaded) prev = Object.fromEntries(game.teams.map((t) => [t.id, stats.teams[t.id].total]));
   }
 
   // "Fruit is ripened!" pops above the team name, then the team's number counts up
   function ripenPop(card, from, to) {
+    card = $(`#s-teams [data-id="${card.dataset.id}"]`) || card;
     const pop = document.createElement("div");
     pop.className = "ripe-pop";
     pop.innerHTML = `${svg("i-apple-red")}<span>Fruit is ripened!</span>${to - from > 1 ? `<b>+${to - from}</b>` : ""}`;
