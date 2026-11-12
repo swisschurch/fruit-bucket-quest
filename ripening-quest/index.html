@@ -123,6 +123,8 @@ body:has(#view-join:not([hidden])){background:#fff}
 @keyframes ripePop{0%{transform:translate(-50%,40%) scale(.3);opacity:0}10%{transform:translate(-50%,-30%) scale(1.12);opacity:1}18%{transform:translate(-50%,-25%) scale(1)}82%{transform:translate(-50%,-25%);opacity:1}100%{transform:translate(-50%,-120%);opacity:0}}
 .feed-item .fr{font-weight:700}
 .glass,.team,.feed-item,.scr-total,.scr-qr{background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(8px) saturate(1.2);backdrop-filter:blur(8px) saturate(1.2);box-shadow:0 8px 30px rgba(0,0,0,.18)}
+.scr-idle{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .7s ease}
+#view-screen.film .scr-idle{opacity:0}
 .scr-shade,.scr-top,.feed,.teams{transition:opacity .7s ease,transform .7s cubic-bezier(.3,.7,.3,1)}
 #view-screen.film .scr-shade{opacity:0}
 #view-screen.film .scr-top{opacity:0;transform:translateY(-40px)}
@@ -316,7 +318,8 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
 
 <!-- ===== big screen ===== -->
 <main id="view-screen" class="view" hidden>
-  <video class="scr-video" id="s-video" muted playsinline preload="auto" poster="../assets/ripen-end.jpg" aria-hidden="true"><source src="../assets/ripen.mp4?v=2" type="video/mp4"></video>
+  <video class="scr-video" id="s-video" muted playsinline preload="auto" poster="../assets/ripen-idle.jpg" aria-hidden="true"><source src="../assets/ripen.mp4?v=2" type="video/mp4"></video>
+  <img class="scr-idle" src="../assets/ripen-idle.jpg" alt="" aria-hidden="true">
   <div class="scr-shade"></div>
   <div class="scr-wrap">
     <header class="scr-top">
@@ -405,6 +408,6 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="../config.js?v=18"></script>
-<script type="module" src="app.js?v=5"></script>
+<script type="module" src="app.js?v=6"></script>
 </body>
 </html>
