@@ -6,12 +6,13 @@ const FB_VER = "10.12.2";
 const TEAM_IDS = ["t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8"];
 const ZONE_IDS = ["z1", "z2", "z3", "z4", "z5"];
 const STEPS = [
-  { id: "water", name: "Water", icon: "i-water" },
-  { id: "nourish", name: "Nourish", icon: "i-sprout" },
-  { id: "sun", name: "Sunlight", icon: "i-sun" },
+  { id: "water", name: "Water", icon: "i-water", did: "gave water to" },
+  { id: "nourish", name: "Nourish", icon: "i-sprout", did: "nourished" },
+  { id: "sun", name: "Sunlight", icon: "i-sun", did: "gave sunlight to" },
 ];
+const STEP_OF = Object.fromEntries(STEPS.map((x) => [x.id, x]));
 const FEED_MAX = 50;
-const BG = { w: 2400, h: 1309, feet: 800 }; // orchard art: size and where the trunks meet the hill
+const CARE_MAX = 30; // care taps the big-screen feed keeps
 
 const CELLS4 = ["Cell 1", "Cell 2", "Cell 3", "Cell 4"];
 const YG_CELLS = [...CELLS4, "WOD"];
@@ -97,7 +98,7 @@ function makeDemoBackend() {
   let bc = null;
   try { bc = new BroadcastChannel("ripen-demo"); bc.onmessage = () => emit(); } catch {}
   window.addEventListener("storage", (e) => { if (e.key === KEY || e.key === "harvest-demo-v1") emit(); });
-  const load = () => store.get(KEY, null) || { cfg: {}, fruits: [] };
+  const load = () => { const s = store.get(KEY, null) || { cfg: {}, fruits: [] }; s.care ||= []; return s; };
   const g1 = () => (store.get("harvest-demo-v1", null) || {}).game;
   const save = (s) => { store.set(KEY, s); try { bc?.postMessage(1); } catch {} emit(); };
   function emit() { subs.forEach((f) => f()); }
@@ -109,7 +110,9 @@ function makeDemoBackend() {
     async signIn() {}, async signOut() {},
     async addFruit(f) { const s = load(); const id = Math.random().toString(36).slice(2, 10); s.fruits.push({ ...f, id, ts: Date.now() }); save(s); return id; },
     async deleteFruit(id) { const s = load(); s.fruits = s.fruits.filter((f) => f.id !== id); save(s); },
-    async resetAll() { const s = load(); s.fruits = []; save(s); },
+    async resetAll() { const s = load(); s.fruits = []; s.care = []; save(s); },
+    async addCare(c) { const s = load(); s.care.push({ ...c, id: Math.random().toString(36).slice(2, 10), ts: Date.now() }); s.care = s.care.slice(-CARE_MAX); save(s); },
+    watchCare(cb) { return sub(() => cb([...load().care].sort((a, b) => b.ts - a.ts))); },
     watchPublic(cb) { return sub(() => { const s = load(); cb({ game: normalizeGame(g1(), s.cfg), stats: computeStats(s.fruits) }); }); },
     watchGame(cb) { return sub(() => cb(normalizeGame(g1(), load().cfg))); },
     watchFruits(cb) { return sub(() => cb([...load().fruits])); },
@@ -135,6 +138,14 @@ function makeFirebaseBackend(conf) {
     async signOut() { await au.signOut(auth); },
     async addFruit(f) { const ref = await fs.addDoc(fs.collection(db, "redfruits"), { ...f, ts: fs.serverTimestamp() }); return ref.id; },
     async deleteFruit(id) { await fs.deleteDoc(fs.doc(db, "redfruits", id)); },
+    async addCare(c) { await fs.addDoc(fs.collection(db, "care2"), { ...c, ts: fs.serverTimestamp() }); },
+    watchCare(cb, err) {
+      const q = fs.query(fs.collection(db, "care2"), fs.orderBy("ts", "desc"), fs.limit(CARE_MAX));
+      return fs.onSnapshot(q, (snap) => cb(snap.docs.map((d) => {
+        const x = d.data({ serverTimestamps: "estimate" });
+        return { id: d.id, team: x.team, zone: x.zone, harvester: x.harvester, fruit: x.fruit, kind: x.kind, ts: x.ts?.toMillis ? x.ts.toMillis() : Date.now() };
+      })), err);
+    },
     async fetchPublic() {
       const s = await fs.getDoc(fs.doc(db, "public", "summary2"));
       if (s.exists()) { const d = s.data(); return { game: d.game, stats: d.stats || null }; }
@@ -155,7 +166,7 @@ function makeFirebaseBackend(conf) {
     async saveCfg(c) { await fs.setDoc(fs.doc(db, "public", "config2"), c); },
     async writeSummary(sum) { await fs.setDoc(fs.doc(db, "public", "summary2"), { ...sum, updatedAt: fs.serverTimestamp() }); },
     async resetAll() {
-      const snap = await fs.getDocs(fs.collection(db, "redfruits"));
+      const snap = { docs: [...(await fs.getDocs(fs.collection(db, "redfruits"))).docs, ...(await fs.getDocs(fs.collection(db, "care2"))).docs] };
       for (let i = 0; i < snap.docs.length; i += 400) {
         const batch = fs.writeBatch(db);
         snap.docs.slice(i, i + 400).forEach((d) => batch.delete(d.ref));
@@ -278,6 +289,7 @@ function startJoin() {
     const b = e.target.closest("[data-step]");
     if (!b || b.disabled || !cur) return;
     cur.done.add(b.dataset.step);
+    backend.addCare({ team: profile.team, zone: profile.zone, harvester: profile.name, fruit: cur.fruit, kind: b.dataset.step }).catch((e) => console.warn("care", e));
     render();
     const ap = $("#j-big-apple");
     ap.animate([{ transform: "scale(1)" }, { transform: "scale(1.15)" }, { transform: "scale(1)" }], { duration: 450, easing: "ease-out" });
@@ -374,33 +386,33 @@ function startScreen() {
   $("#view-screen").hidden = false;
   document.body.style.overflow = "hidden";
   drawQR($("#s-qr"), joinUrl(), 220);
-  let game = normalizeGame(null, null), stats = computeStats([]), prev = null, loaded = false;
+  let game = normalizeGame(null, null), fruits = [], care = [], stats = computeStats([]), prev = null;
+  let loaded = false; // the first list of red fruits is history: no pop-ups for it
+  const showing = {}; // team id -> number shown while it counts up
   const feedSeen = new Set();
   const writeSummary = makeSummaryWriter();
   $("#s-signin").onclick = () => backend.signIn().catch((e) => toast("Sign-in failed: " + (e.code || e.message), true));
+
+  // Background film: rests on its last frame (the ripe tree) and replays from the start for every new red fruit
+  const vid = $("#s-video");
+  const toEnd = () => { if (vid.duration) { vid.pause(); vid.currentTime = Math.max(0, vid.duration - 0.05); } };
+  vid.addEventListener("loadedmetadata", toEnd);
+  vid.addEventListener("ended", toEnd);
+  function replay() {
+    try { vid.currentTime = 0; const p = vid.play(); if (p) p.catch(() => {}); } catch {}
+  }
 
   withAdmin({
     loginBox: $("#s-login"),
     onReady() {
       const deny = (e) => adminDenied($("#s-login"), $("#s-login-msg"), e);
-      backend.watchGame((g) => { game = g; draw(); }, deny);
-      backend.watchFruits((list) => { stats = computeStats(list); draw(); loaded = true; prev = Object.fromEntries(game.teams.map((t) => [t.id, stats.teams[t.id].total])); }, deny);
+      backend.watchGame((g) => { game = g; drawTeams(); drawFeed(); }, deny);
+      backend.watchFruits((list) => { fruits = list; stats = computeStats(list); drawTeams(); if (!loaded) { loaded = true; drawTeams(); } drawFeed(); }, deny);
+      backend.watchCare((list) => { care = list; drawFeed(); }, deny);
     },
   });
 
-  function fitBg() {
-    const bg = $(".scr-bg"), boards = $("#s-teams");
-    const W = innerWidth, H = innerHeight;
-    const line = boards.getBoundingClientRect().top + H * 0.02;
-    const scale = Math.max(W / BG.w, line / BG.feet, H / BG.h);
-    const w = BG.w * scale, h = BG.h * scale;
-    const y = Math.min(0, Math.max(H - h, line - BG.feet * scale));
-    bg.style.backgroundSize = `${w}px ${h}px`;
-    bg.style.backgroundPosition = `${(W - w) / 2}px ${y}px`;
-  }
-  addEventListener("resize", fitBg);
-
-  function draw() {
+  function drawTeams() {
     writeSummary(game, stats);
     document.title = game.title;
     $("#s-title").textContent = game.title;
@@ -410,41 +422,81 @@ function startScreen() {
     const ranked = [...game.teams].sort((a, b) => stats.teams[b.id].total / b.goal - stats.teams[a.id].total / a.goal);
     const rankOf = Object.fromEntries(ranked.map((t, i) => [t.id, i + 1]));
     const box = $("#s-teams");
-    if (box.children.length !== game.teams.length) box.innerHTML = game.teams.map((t) => `<article class="team glass" data-id="${t.id}"></article>`).join("");
+    if (box.children.length !== game.teams.length) box.innerHTML = game.teams.map((t) => `<article class="team glass" data-id="${t.id}"><div class="tc"></div></article>`).join("");
 
+    let grew = false;
     game.teams.forEach((t) => {
       const el = box.querySelector(`[data-id="${t.id}"]`);
       const T = stats.teams[t.id], n = T.total, q = t.goal;
       const before = prev ? prev[t.id] : n;
+      const up = n > before;
+      if (up) grew = true;
       const cols = Math.max(6, Math.ceil(Math.sqrt(q * 1.4)));
       const filled = Math.min(n, q);
       const slots = Array.from({ length: q }, (_, i) =>
-        `<div class="slot${i < filled ? " red" : ""}${i < filled && prev && i >= before ? " new" : ""}">${svg(i < filled ? "i-apple-red" : "i-apple-green")}</div>`).join("");
+        `<div class="slot${i < filled ? " red" : ""}${up && i < filled && i >= before ? " new" : ""}">${svg(i < filled ? "i-apple-red" : "i-apple-green")}</div>`).join("");
       const zones = t.zones.map((z, i) => {
         const v = T.zones[ZONE_IDS[i]];
         const max = Math.max(1, ...ZONE_IDS.slice(0, t.zones.length).map((k) => T.zones[k]));
         return `<div class="zone"><span>${esc(z)}</span><div class="bar"><i style="width:${(v / max) * 100}%"></i></div><span class="num">${v}</span></div>`;
       }).join("");
       el.classList.toggle("done", n >= q);
-      el.innerHTML = `
+      if (up) showing[t.id] = Math.min(showing[t.id] ?? before, before);
+      el.querySelector(".tc").innerHTML = `
         ${n >= q ? `<div class="done-badge">Goal reached</div>` : ""}
         <div class="team-head"><h2>${esc(t.name)}</h2><span class="rank">#${rankOf[t.id]}</span></div>
-        <div class="team-count num">${n}<small> / ${q}</small></div>
+        <div class="team-count num"><span class="cnt">${showing[t.id] ?? n}</span><small> / ${q}</small></div>
         <div class="slots" style="grid-template-columns:repeat(${cols},1fr)">${slots}</div>
         ${n > q ? `<div class="over">+${n - q} extra</div>` : ""}
         <div class="zones">${zones}</div>`;
-      if (prev && before < q && n >= q) celebrate(t.name);
+      if (up) ripenPop(el, before, n);
+      if (prev && before < q && n >= q) setTimeout(() => celebrate(t.name), 1800);
     });
+    if (grew) replay();
     if (loaded) prev = Object.fromEntries(game.teams.map((t) => [t.id, stats.teams[t.id].total]));
-    fitBg();
+  }
 
+  // "Fruit is ripened!" pops above the team name, then the team's number counts up
+  function ripenPop(card, from, to) {
+    const pop = document.createElement("div");
+    pop.className = "ripe-pop";
+    pop.innerHTML = `${svg("i-apple-red")}<span>Fruit is ripened!</span>${to - from > 1 ? `<b>+${to - from}</b>` : ""}`;
+    card.appendChild(pop);
+    setTimeout(() => pop.remove(), 4200);
+    const id = card.dataset.id;
+    clearTimeout(ripenPop[id]);
+    ripenPop[id] = setTimeout(function step() {
+      const target = stats.teams[id]?.total ?? to;
+      const v = Math.min((showing[id] ?? target) + 1, target);
+      showing[id] = v;
+      const cnt = card.querySelector(".cnt");
+      cnt.textContent = v;
+      cnt.animate([{ transform: "scale(1.6)", color: "#ffd0d5" }, { transform: "scale(1)", color: "#fff" }], { duration: 600, easing: "cubic-bezier(.2,1.4,.4,1)" });
+      if (v < target) ripenPop[id] = setTimeout(step, 250);
+      else delete showing[id];
+    }, 700);
+    card.animate([{ boxShadow: "0 0 0 3px #ff6b78, 0 0 46px rgba(255,80,90,.8)" }, { boxShadow: "0 8px 30px rgba(0,0,0,.18)" }], { duration: 2400, easing: "ease-out" });
+  }
+
+  // Feed: every Water / Nourish / Sunlight tap, plus each fruit that turns red
+  function drawFeed() {
     const nameOf = Object.fromEntries(game.teams.map((t) => [t.id, t.name]));
+    const items = [
+      ...care.map((c) => ({ ...c, type: "care" })),
+      ...stats.recent.slice(0, CARE_MAX).map((r) => ({ ...r, type: "ripe", ts: (r.ts || 0) + 1 })),
+    ].sort((a, b) => b.ts - a.ts).slice(0, CARE_MAX);
     const feed = $("#s-feed"), keepTop = feed.scrollTop, first = !feedSeen.size;
-    feed.innerHTML = stats.recent.map((r) => `
-      <div class="feed-item glass${!first && !feedSeen.has(r.id) ? " new" : ""}">${svg("i-apple-red")}
-        <div><div><span class="who">${esc(r.harvester)}</span> ripened a fruit</div>
-        <div class="meta">${esc(nameOf[r.team] || "")} · ${esc(zoneName(game, r.team, r.zone))} · ${esc(r.masked)}</div></div></div>`).join("");
-    stats.recent.forEach((r) => feedSeen.add(r.id));
+    feed.innerHTML = items.map((r) => {
+      const key = r.type + r.id;
+      const isNew = !first && !feedSeen.has(key);
+      const where = `${esc(nameOf[r.team] || "")} · ${esc(zoneName(game, r.team, r.zone))}`;
+      if (r.type === "ripe") return `<div class="feed-item glass ripe${isNew ? " new" : ""}">${svg("i-apple-red")}
+        <div><div><span class="who">${esc(r.harvester)}</span>'s fruit is ripened! <span class="fr">${esc(r.masked)}</span></div><div class="meta">${where}</div></div></div>`;
+      const st = STEP_OF[r.kind] || STEPS[0];
+      return `<div class="feed-item glass${isNew ? " new" : ""}">${svg(st.icon, r.kind)}
+        <div><div><span class="who">${esc(r.harvester)}</span> ${st.did} <span class="fr">${esc(maskName(r.fruit))}</span></div><div class="meta">${where}</div></div></div>`;
+    }).join("");
+    items.forEach((r) => feedSeen.add(r.type + r.id));
     feed.scrollTop = keepTop;
   }
 

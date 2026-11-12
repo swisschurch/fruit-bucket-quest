@@ -74,12 +74,14 @@ Firestore 무료(Spark) 요금제는 하루 읽기 5만 회까지입니다. 240�
 | 대형 스크린 | `.../fruit-bucket-quest/ripen.html#screen` |
 | 진행자 | `.../fruit-bucket-quest/ripen.html#admin` |
 
-- 대형 스크린: 팀마다 목표 수만큼 초록 사과가 있고, 하나씩 빨갛게 바뀝니다. 목표를 채우면 축하 화면.
+- 대형 스크린: 배경은 다람쥐 영상(`assets/ripen.mp4`). 평소에는 마지막 장면(익은 나무)에 멈춰 있고, 열매가 하나 익을 때마다 처음부터 다시 재생됩니다. 동시에 그 팀 이름 위에 "Fruit is ripened!"가 뜨고 팀 숫자가 올라갑니다.
+- 왼쪽 소식판에는 누가 물·양분·햇빛을 주었는지 실시간으로 나옵니다 (예: "Anna Keller gave water to M***o R***i").
+- 팀마다 목표 수만큼 초록 사과가 있고, 하나씩 빨갛게 바뀝니다. 목표를 채우면 축하 화면.
 - 팀·셀은 1번 게임 설정을 그대로 씁니다. 목표 수 기본값은 1번 게임 할당량이고, 진행자 화면에서 바꿀 수 있어요.
 - 1번 게임을 한 휴대폰이면 팀·셀·이름이 자동으로 이어지고, 내 바구니 이름이 추천 버튼으로 나옵니다.
 - 사람 이름은 진행자만 볼 수 있고, 대형 스크린에는 가려서(`M***o R***i`) 나옵니다.
 
 ## 설정 (한 번만)
-1. `firestore.rules` 전체를 Firebase 콘솔 **Firestore > 규칙**에 다시 붙여 넣고 **게시** (`redfruits` 규칙이 새로 들어 있음).
+1. `firestore.rules` 전체를 Firebase 콘솔 **Firestore > 규칙**에 다시 붙여 넣고 **게시** (`redfruits`, `care2` 규칙이 들어 있음).
 2. `ripen.html#admin`에서 로그인 → 팀별 목표 확인 → **Save settings**.
 3. 게임 중에는 `ripen.html#screen`을 진행자 계정으로 켜 두세요.
