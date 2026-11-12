@@ -1,4 +1,4 @@
-// Red Fruit Quest (Game 2) — participant (ripen.html) · big screen (#screen) · host (#admin)
+// The Ripening Quest (Game 2) — participant (ripen.html) · big screen (#screen) · host (#admin)
 // Simple rules: pick a person -> give Water, Nourish and Sunlight once each -> the fruit turns red
 // -> +1 red fruit for your team. Teams race to fill their red-fruit goal.
 const CFG = window.HARVEST_CONFIG || {};
@@ -49,7 +49,7 @@ function normalizeGame(g1, g2) {
     const goal = q2 > 0 && q2 <= 999 ? q2 : q1 > 0 && q1 <= 999 ? q1 : d.quota || 60;
     return { id, name: clean(t.name) || d.name, zones: zones.length ? zones : [...d.zones], goal };
   });
-  return { title: String(g2.title ?? "").replace(/\s+/g, " ").trim().slice(0, 40) || "Red Fruit Quest", teams };
+  return { title: String(g2.title ?? "").replace(/\s+/g, " ").trim().slice(0, 40) || "The Ripening Quest", teams };
 }
 const teamOf = (game, id) => game.teams.find((t) => t.id === id);
 const zoneName = (game, teamId, zoneId) => teamOf(game, teamId)?.zones[ZONE_IDS.indexOf(zoneId)] || "";
@@ -471,11 +471,11 @@ function startScreen() {
       showing[id] = v;
       const cnt = card.querySelector(".cnt");
       cnt.textContent = v;
-      cnt.animate([{ transform: "scale(1.6)", color: "#ffd0d5" }, { transform: "scale(1)", color: "#fff" }], { duration: 600, easing: "cubic-bezier(.2,1.4,.4,1)" });
+      cnt.animate([{ transform: "scale(1.6)", color: "#ffd23f" }, { transform: "scale(1)", color: "#fff" }], { duration: 600, easing: "cubic-bezier(.2,1.4,.4,1)" });
       if (v < target) ripenPop[id] = setTimeout(step, 250);
       else delete showing[id];
     }, 700);
-    card.animate([{ boxShadow: "0 0 0 3px #ff6b78, 0 0 46px rgba(255,80,90,.8)" }, { boxShadow: "0 8px 30px rgba(0,0,0,.18)" }], { duration: 2400, easing: "ease-out" });
+    card.animate([{ boxShadow: "0 0 0 3px #ffd23f, 0 0 46px rgba(255,210,63,.85)" }, { boxShadow: "0 8px 30px rgba(0,0,0,.18)" }], { duration: 2400, easing: "ease-out" });
   }
 
   // Feed: every Water / Nourish / Sunlight tap, plus each fruit that turns red
@@ -573,7 +573,7 @@ function startAdmin() {
     const csv = "﻿" + rows.map((r) => r.map((c) => `"${String(c ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-    a.download = `red-fruit-quest_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `ripening-quest_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
   };
 
