@@ -70,9 +70,23 @@ function normalizeGame(g1, g2) {
 const teamOf = (game, id) => game.teams.find((t) => t.id === id);
 const zoneName = (game, teamId, zoneId) => teamOf(game, teamId)?.zones[ZONE_IDS.indexOf(zoneId)] || "";
 
-function computeStats(fruits) {
-  const S = { total: 0, teams: {}, people: {}, recent: [] };
-  TEAM_IDS.forEach((t) => (S.teams[t] = { total: 0, zones: Object.fromEntries(ZONE_IDS.map((z) => [z, 0])) }));
+// One fruit = one person named by one gardener
+const fruitKey = (x) => `${x.team}|${x.zone}|${clean(x.harvester).toLowerCase()}|${clean(x.fruit).toLowerCase()}`;
+const KIND_IDX = { water: 0, nourish: 1, sun: 2, bug: 3 };
+
+// total = red fruits; growing = fruits that got care but are not red yet; care = ticks per step
+function computeStats(fruits, care = []) {
+  const S = { total: 0, growing: 0, care: [0, 0, 0, 0], teams: {}, people: {}, recent: [] };
+  TEAM_IDS.forEach((t) => (S.teams[t] = { total: 0, growing: 0, care: [0, 0, 0, 0], zones: Object.fromEntries(ZONE_IDS.map((z) => [z, 0])) }));
+  const red = new Set(fruits.map(fruitKey));
+  const seen = new Set();
+  for (const c of care) {
+    const T = S.teams[c.team], k = KIND_IDX[c.kind];
+    if (!T || k === undefined) continue;
+    T.care[k]++; S.care[k]++;
+    const fk = fruitKey(c);
+    if (!red.has(fk) && !seen.has(fk)) { seen.add(fk); T.growing++; S.growing++; }
+  }
   for (const f of [...fruits].sort((a, b) => (b.ts || 0) - (a.ts || 0))) {
     const T = S.teams[f.team];
     if (!T || !ZONE_IDS.includes(f.zone)) continue;
@@ -129,9 +143,9 @@ function makeDemoBackend() {
     async resetAll() { const s = load(); s.fruits = []; s.care = []; save(s); },
     async clearCare() { const s = load(); s.care = []; save(s); },
     async deleteCareFor(f) { const s = load(); s.care = s.care.filter((c) => !(c.team === f.team && c.zone === f.zone && c.harvester === f.harvester && c.fruit === f.fruit)); save(s); },
-    async addCare(c) { const s = load(); s.care.push({ ...c, id: Math.random().toString(36).slice(2, 10), ts: Date.now() }); s.care = s.care.slice(-CARE_MAX); save(s); },
+    async addCare(c) { const s = load(); s.care.push({ ...c, id: Math.random().toString(36).slice(2, 10), ts: Date.now() }); s.care = s.care.slice(-5000); save(s); },
     watchCare(cb) { return sub(() => cb([...load().care].sort((a, b) => b.ts - a.ts))); },
-    watchPublic(cb) { return sub(() => { const s = load(); cb({ game: normalizeGame(g1(), s.cfg), stats: computeStats(s.fruits) }); }); },
+    watchPublic(cb) { return sub(() => { const s = load(); cb({ game: normalizeGame(g1(), s.cfg), stats: computeStats(s.fruits, s.care) }); }); },
     watchGame(cb) { return sub(() => cb(normalizeGame(g1(), load().cfg))); },
     watchFruits(cb) { return sub(() => cb([...load().fruits])); },
     async saveCfg(c) { const s = load(); s.cfg = c; save(s); },
@@ -159,11 +173,10 @@ function makeFirebaseBackend(conf) {
     async deleteFruit(id) { await this.init(); await fs.deleteDoc(fs.doc(db, "redfruits", id)); },
     async addCare(c) { await this.init(); await fs.addDoc(fs.collection(db, "care2"), { ...c, ts: fs.serverTimestamp() }); },
     watchCare(cb, err) {
-      const q = fs.query(fs.collection(db, "care2"), fs.orderBy("ts", "desc"), fs.limit(CARE_MAX));
-      return fs.onSnapshot(q, (snap) => cb(snap.docs.map((d) => {
+      return fs.onSnapshot(fs.collection(db, "care2"), (snap) => cb(snap.docs.map((d) => {
         const x = d.data({ serverTimestamps: "estimate" });
         return { id: d.id, team: x.team, zone: x.zone, harvester: x.harvester, fruit: x.fruit, kind: x.kind, ts: x.ts?.toMillis ? x.ts.toMillis() : Date.now() };
-      })), err);
+      })).sort((a, b) => b.ts - a.ts), err);
     },
     async fetchPublic() {
       await this.init(); 
@@ -276,11 +289,11 @@ function startJoin(ready = Promise.resolve()) {
     $("#j-where").textContent = `${team.name} · ${zoneName(game, team.id, profile.zone)}`;
 
     const tn = stats?.teams?.[team.id]?.total || 0;
-    $("#j-team-label").textContent = `${team.name} red fruits`;
+    const TT = stats?.teams?.[team.id];
+    $("#j-team-label").textContent = team.name;
     $("#j-team-n").textContent = tn;
-    $("#j-team-q").textContent = team.goal;
-    setBar("#j-team-bar", tn / team.goal);
-    $("#j-team-left").textContent = tn >= team.goal ? `Goal reached! +${tn - team.goal} extra` : `${team.goal - tn} more to the goal`;
+    $("#j-team-g").textContent = TT?.growing || 0;
+    $("#j-team-care").innerHTML = STEPS.map((st, i) => `<span>${svg(st.icon, "jc-ic " + st.id)}<b class="num">${TT?.care?.[i] || 0}</b></span>`).join("");
 
     const my = Math.max(stats?.people?.[personKey(profile.team, profile.zone, profile.name)] || 0, myLocal().length);
     $("#j-mycount").textContent = my;
@@ -598,13 +611,15 @@ function startScreen() {
     onReady() {
       const deny = (e) => adminDenied($("#s-login"), $("#s-login-msg"), e);
       backend.watchGame((g) => { game = g; drawTeams(); drawFeed(); }, deny);
-      backend.watchFruits((list) => { fruits = list; stats = computeStats(list); drawTeams(); if (!loaded) { loaded = true; drawTeams(); } drawFeed(); }, deny);
+      backend.watchFruits((list) => { fruits = list; stats = computeStats(list, care); drawTeams(); if (!loaded) { loaded = true; drawTeams(); } drawFeed(); }, deny);
       // every Water / Nourish / Sunlight tap replays the film (taps already there when the screen opens don't)
       let careSeen = null;
       backend.watchCare((list) => {
         care = list;
         if (careSeen && list.some((c) => !careSeen.has(c.id))) replay();
         careSeen = new Set(list.map((c) => c.id));
+        stats = computeStats(fruits, care);
+        drawTeams();
         drawFeed();
       }, deny);
     },
@@ -615,9 +630,10 @@ function startScreen() {
     document.title = game.title;
     $("#s-title").textContent = game.title;
     $("#s-total").textContent = stats.total;
-    $("#s-goal").textContent = game.teams.reduce((s, t) => s + t.goal, 0);
+    $("#s-growing").textContent = stats.growing;
 
-    const ranked = [...game.teams].sort((a, b) => stats.teams[b.id].total / b.goal - stats.teams[a.id].total / a.goal);
+    const score = (id) => stats.teams[id].total * 1e6 + stats.teams[id].care.reduce((x, y) => x + y, 0);
+    const ranked = [...game.teams].sort((a, b) => score(b.id) - score(a.id));
     const rankOf = Object.fromEntries(ranked.map((t, i) => [t.id, i + 1]));
     const box = $("#s-teams");
     if (box.children.length !== game.teams.length) box.innerHTML = game.teams.map((t) => `<article class="team glass" data-id="${t.id}"><div class="tc"></div></article>`).join("");
@@ -626,30 +642,19 @@ function startScreen() {
     const pops = [];
     game.teams.forEach((t) => {
       const el = box.querySelector(`[data-id="${t.id}"]`);
-      const T = stats.teams[t.id], n = T.total, q = t.goal;
+      const T = stats.teams[t.id], n = T.total;
       const before = prev ? prev[t.id] : n;
       const up = n > before;
       if (up) grew = true;
-      const cols = Math.max(6, Math.ceil(Math.sqrt(q * 1.4)));
-      const filled = Math.min(n, q);
-      const slots = Array.from({ length: q }, (_, i) =>
-        `<div class="slot${i < filled ? " red" : ""}${up && i < filled && i >= before ? " new" : ""}">${svg(i < filled ? "i-apple-red" : "i-apple-green")}</div>`).join("");
-      const zones = t.zones.map((z, i) => {
-        const v = T.zones[ZONE_IDS[i]];
-        const max = Math.max(1, ...ZONE_IDS.slice(0, t.zones.length).map((k) => T.zones[k]));
-        return `<div class="zone"><span>${esc(z)}</span><div class="bar"><i style="width:${(v / max) * 100}%"></i></div><span class="num">${v}</span></div>`;
-      }).join("");
-      el.classList.toggle("done", n >= q);
       if (up) showing[t.id] = Math.min(showing[t.id] ?? before, before);
       el.querySelector(".tc").innerHTML = `
-        ${n >= q ? `<div class="done-badge">Goal reached</div>` : ""}
         <div class="team-head"><h2>${esc(t.name)}</h2><span class="rank">#${rankOf[t.id]}</span></div>
-        <div class="team-count num"><span class="cnt">${showing[t.id] ?? n}</span><small> / ${q}</small></div>
-        <div class="slots" style="grid-template-columns:repeat(${cols},1fr)">${slots}</div>
-        ${n > q ? `<div class="over">+${n - q} extra</div>` : ""}
-        <div class="zones">${zones}</div>`;
+        <div class="team-care4">${STEPS.map((st, i) => `<div class="c4 ${st.id}" title="${esc(st.name)}">${svg(st.icon, "c4-ic " + st.id)}<b class="num">${T.care[i]}</b></div>`).join("")}</div>
+        <div class="team-fruits">
+          <div class="tf growing">${svg("i-apple-green", "tf-ic")}<span class="tf-lab">Ripening</span><b class="num">${T.growing}</b></div>
+          <div class="tf ripe">${svg("i-apple-red", "tf-ic")}<span class="tf-lab">Ripe</span><b class="num cnt">${showing[t.id] ?? n}</b></div>
+        </div>`;
       if (up) pops.push(() => ripenPop(el, before, n));
-      if (prev && before < q && n >= q) pops.push(() => setTimeout(() => celebrate(t.name), 1800));
     });
     if (grew) replay();
     pops.forEach(later);
@@ -736,8 +741,10 @@ function startAdmin() {
     onReady() {
       $("#a-main").hidden = false;
       const deny = (e) => { $("#a-main").hidden = true; adminDenied($("#a-login"), $("#a-login-msg"), e); };
-      backend.watchGame((g) => { game = g; if (!dirty) fillForm(); renderRows(); writeSummary(game, computeStats(fruits)); }, deny);
-      backend.watchFruits((l) => { fruits = l; renderRows(); writeSummary(game, computeStats(fruits)); }, deny);
+      let care = [];
+      backend.watchGame((g) => { game = g; if (!dirty) fillForm(); renderRows(); writeSummary(game, computeStats(fruits, care)); }, deny);
+      backend.watchFruits((l) => { fruits = l; renderRows(); writeSummary(game, computeStats(fruits, care)); }, deny);
+      backend.watchCare((l) => { care = l; writeSummary(game, computeStats(fruits, care)); }, deny);
     },
   });
 
