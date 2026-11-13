@@ -277,7 +277,25 @@ function startJoin(ready = Promise.resolve()) {
     $("#j-name").value = profile.name;
     $("#j-main").hidden = true; $("#j-setup").hidden = false; renderSetup();
   });
-  function showMain() { $("#j-setup").hidden = true; $("#j-main").hidden = false; render(); }
+  // Buckets typed on this phone in the bucket game arrive as green fruits in My fruits, ready to ripen
+  let dropped = store.get("ripen-dropped", []); // fruits the person removed: don't bring them back
+  function importBuckets() {
+    if (!profile) return;
+    const me = personKey(profile.team, profile.zone, profile.name);
+    const red = new Set(myLocal().map((m) => clean(m.fruit).toLowerCase()));
+    let added = 0;
+    for (const b of buckets) {
+      if (b.team !== profile.team || b.zone !== profile.zone || clean(b.name) !== clean(profile.name)) continue;
+      const n = clean(b.basket);
+      if (!n || red.has(n.toLowerCase())) continue;
+      const key = `${me}|${n.toLowerCase()}`;
+      if (dropped.includes(key) || prog.some((x) => x.key === key)) continue;
+      prog.push({ key, team: profile.team, zone: profile.zone, name: profile.name, fruit: n, checks: {}, sent: {}, ts: b.ts || 0, fromBucket: true });
+      added++;
+    }
+    if (added) { saveProg(); toast(added === 1 ? "1 bucket from the bucket game is now a green fruit" : `${added} buckets from the bucket game are now green fruits`); }
+  }
+  function showMain() { $("#j-setup").hidden = true; $("#j-main").hidden = false; importBuckets(); render(); }
 
   // ---- main ----
   function render() {
@@ -302,7 +320,7 @@ function startJoin(ready = Promise.resolve()) {
     $("#j-pick").hidden = !!cur;
     $("#j-grow").hidden = !cur;
     if (!cur) {
-      const done = new Set(myLocal().map((m) => clean(m.fruit).toLowerCase()));
+      const done = new Set([...myLocal(), ...myProg()].map((m) => clean(m.fruit).toLowerCase()));
       const sugg = [...new Set(buckets.filter((b) => profile && b.team === profile.team && clean(b.name) === clean(profile.name)).map((b) => clean(b.basket)))]
         .filter((n) => n && !done.has(n.toLowerCase())).slice(0, 12);
       $("#j-sugg-wrap").hidden = !sugg.length;
@@ -326,7 +344,7 @@ function startJoin(ready = Promise.resolve()) {
     $("#j-mine").innerHTML =
       growing.map((p) => { const n = doneCount(p); return `<li class="growing${cur === p ? " cur" : ""}" data-open="${esc(p.key)}">
         <svg class="mi" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 14 C18 9 7 11 7 24 C7 35 15 44 20 44 C22 44 23 43 24 43 C25 43 26 44 28 44 C33 44 41 35 41 24 C41 11 30 9 24 14Z" fill="${STEP_COLORS[n]}"/><path d="M24 14 q0-6 4-9" fill="none" stroke="#5a3a1a" stroke-width="2.2" stroke-linecap="round"/></svg>
-        <span class="mb">${esc(p.fruit)}<small>${n} / ${STEPS.length} · tap to continue</small></span>
+        <span class="mb">${esc(p.fruit)}<small>${n ? `${n} / ${STEPS.length} · tap to continue` : (p.fromBucket ? "From your buckets · tap to start" : "Tap to start")}</small></span>
         <button type="button" class="mine-del" data-drop="${esc(p.key)}">Remove</button></li>`; }).join("") +
       list.map((m) => `<li>${svg("i-apple-red", "mi")}<span class="mb">${esc(m.fruit)}<small>Red</small></span>${m.id ? `<button type="button" class="mine-del" data-del="${esc(m.id)}">Delete</button>` : ""}</li>`).join("");
     $("#j-mine-empty").hidden = list.length + growing.length > 0;
@@ -488,6 +506,7 @@ function startJoin(ready = Promise.resolve()) {
       }
       const p = prog.find((x) => x.key === drop.dataset.drop);
       prog = prog.filter((x) => x !== p); saveProg();
+      if (p && !dropped.includes(p.key)) { dropped.push(p.key); store.set("ripen-dropped", dropped); }
       if (cur === p) cur = null;
       render();
       return;
