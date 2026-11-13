@@ -197,7 +197,11 @@ body.noscroll{overflow:hidden}
 .scr-shade,.scr-top,.feed,.teams{transition:opacity .7s ease,transform .7s cubic-bezier(.3,.7,.3,1)}
 #view-screen.film .scr-shade{opacity:0}
 #view-screen.film .scr-top{opacity:0;transform:translateY(-40px)}
-#view-screen.film .feed{opacity:0;transform:translateX(-50px)}
+#view-screen.film .feed{opacity:0;transform:translateX(-50px);scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.4) transparent}
+.feed::-webkit-scrollbar{width:6px;background:transparent}
+.feed::-webkit-scrollbar-track{background:transparent}
+.feed::-webkit-scrollbar-thumb{background:rgba(255,255,255,.4);border-radius:999px}
+.feed::-webkit-scrollbar-button{display:none;height:0}
 #view-screen.film .teams{opacity:0;transform:translateY(60px)}
 #view-screen.film .scr-top,#view-screen.film .feed,#view-screen.film .teams{pointer-events:none}
 .scr-wrap{position:relative;height:100%;min-height:100vh;display:grid;grid-template-rows:auto 1fr auto;padding-block:max(1.6vh,12px);padding-left:max(16px,1.6vw);padding-right:max(16px,1.6vw);gap:1.2vh}
