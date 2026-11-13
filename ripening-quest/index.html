@@ -175,6 +175,17 @@ body.noscroll{overflow:hidden}
 #view-screen{--glass:rgba(22,34,20,.38);--glass-line:rgba(255,255,255,.32);--soft:rgba(255,255,255,.8);--track:rgba(255,255,255,.18);position:relative;height:100%;min-height:100vh;overflow:hidden;color:#fff;background:#5b93cf}
 .scr-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 30%;background:#5b93cf}
 .scr-shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(25,45,70,.38) 0%,rgba(25,45,70,0) 24%,rgba(30,20,10,0) 58%,rgba(30,20,10,.35) 100%)}
+.care-flash{position:absolute;inset:0;z-index:15;display:grid;place-items:center;pointer-events:none;transition:opacity .4s}
+.care-flash.out,#view-screen.film .care-flash{opacity:0}
+.cf-card{display:grid;justify-items:center;gap:.5vh;text-align:center;background:rgba(255,255,255,.93);color:var(--ink);border-radius:32px;padding:2.4vh 3vw;box-shadow:0 20px 60px rgba(0,0,0,.35);animation:cfIn .6s cubic-bezier(.2,1.5,.4,1) both;max-width:70vw}
+.care-flash.out .cf-card{transform:translateY(-20px) scale(.96);transition:transform .4s}
+.cf-ic{width:clamp(70px,7vw,140px);height:clamp(70px,7vw,140px);animation:cfIc 1.2s ease-in-out infinite alternate}
+.cf-ic.water{color:var(--water)}.cf-ic.nourish{color:var(--nourish)}.cf-ic.sun{color:var(--sun)}.cf-ic.bug{color:#8A5A3B}
+.cf-txt{font-size:clamp(20px,2vw,40px);line-height:1.25}
+.cf-txt b{font-family:var(--f-display);font-weight:700}
+.cf-meta{font-size:clamp(13px,1.1vw,22px);color:var(--muted)}
+@keyframes cfIn{0%{transform:scale(.4);opacity:0}100%{transform:none;opacity:1}}
+@keyframes cfIc{from{transform:translateY(0) rotate(-6deg)}to{transform:translateY(-8px) rotate(6deg)}}
 .ripe-pop{position:absolute;left:50%;top:-1.2em;z-index:5;display:flex;align-items:center;gap:.35em;white-space:nowrap;background:#FFEA80;color:#3a2a00;font-family:var(--f-display);font-weight:700;font-size:clamp(13px,1.15vw,22px);padding:.3em .8em .3em .45em;border-radius:999px;box-shadow:0 0 0 3px #FFF6C7,0 0 30px rgba(255,234,128,.75),0 8px 24px rgba(0,0,0,.35);animation:ripePop 4.2s cubic-bezier(.2,1.4,.4,1) forwards;pointer-events:none}
 .ripe-pop svg{width:1.5em;height:1.5em}
 .ripe-pop b{color:#FFEA80;background:#3a2a00;border-radius:999px;padding:0 .45em;font-size:.85em}
@@ -501,6 +512,6 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="../config.js?v=18"></script>
-<script type="module" src="app.js?v=12"></script>
+<script type="module" src="app.js?v=13"></script>
 </body>
 </html>

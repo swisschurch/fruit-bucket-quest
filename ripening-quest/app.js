@@ -612,11 +612,11 @@ function startScreen() {
       const deny = (e) => adminDenied($("#s-login"), $("#s-login-msg"), e);
       backend.watchGame((g) => { game = g; drawTeams(); drawFeed(); }, deny);
       backend.watchFruits((list) => { fruits = list; stats = computeStats(list, care); drawTeams(); if (!loaded) { loaded = true; drawTeams(); } drawFeed(); }, deny);
-      // every Water / Nourish / Sunlight tap replays the film (taps already there when the screen opens don't)
+      // every ticked item pops its icon in the middle of the screen (ticks already there when the screen opens don't)
       let careSeen = null;
       backend.watchCare((list) => {
         care = list;
-        if (careSeen && list.some((c) => !careSeen.has(c.id))) replay();
+        if (careSeen) list.filter((c) => !careSeen.has(c.id)).reverse().forEach((c) => later(() => careFlash(c)));
         careSeen = new Set(list.map((c) => c.id));
         stats = computeStats(fruits, care);
         drawTeams();
@@ -659,6 +659,31 @@ function startScreen() {
     if (grew) replay();
     pops.forEach(later);
     if (loaded) prev = Object.fromEntries(game.teams.map((t) => [t.id, stats.teams[t.id].total]));
+  }
+
+  // Centre pop-up for one ticked checklist item: the step's icon and who did it
+  const flashQ = [];
+  let flashing = false;
+  function careFlash(c) {
+    if (flashQ.length >= 6) flashQ.shift();
+    flashQ.push(c);
+    if (!flashing) nextFlash();
+  }
+  function nextFlash() {
+    const c = flashQ.shift();
+    if (!c) { flashing = false; return; }
+    flashing = true;
+    const st = STEP_OF[c.kind] || STEPS[0];
+    const team = teamOf(game, c.team)?.name || "";
+    const el = document.createElement("div");
+    el.className = "care-flash " + st.id;
+    el.innerHTML = `<div class="cf-card">${svg(st.icon, "cf-ic " + st.id)}
+      <div class="cf-txt"><b>${esc(clean(c.harvester))}</b> ${st.did} <b>${esc(maskName(c.fruit))}</b></div>
+      <div class="cf-meta">${esc(st.name)} · ${esc(team)}</div></div>`;
+    $("#view-screen").appendChild(el);
+    const quick = flashQ.length > 0;
+    setTimeout(() => el.classList.add("out"), quick ? 1100 : 1900);
+    setTimeout(() => { el.remove(); nextFlash(); }, quick ? 1500 : 2400);
   }
 
   // "Fruit is ripened!" pops above the team name, then the team's number counts up
