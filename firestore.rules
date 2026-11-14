@@ -17,7 +17,8 @@ service cloud.firestore {
 
     // Team names/quotas (config) and the phone summary: anyone reads, only hosts write
     match /public/{docId} {
-      allow read: if true;
+      // Bucket game closed: its summary and keys (they hold names) are host-only now.
+      allow read: if docId in ['config', 'config2', 'summary2'] || isAdmin();
       allow write: if isAdmin();
     }
 
@@ -26,8 +27,9 @@ service cloud.firestore {
       allow read, update: if isAdmin();
       // The host can delete anything. A phone can delete a bucket only by its id, which only
       // the phone that added it knows (participants can't list buckets, and ids are never published).
-      allow delete: if true;
-      allow create: if request.resource.data.keys().hasOnly(['team', 'zone', 'harvester', 'basket', 'relation', 'ts'])
+      // Bucket game closed on 13 Nov 2026: no new buckets, and only the host can delete.
+      allow delete: if isAdmin();
+      allow create: if false && request.resource.data.keys().hasOnly(['team', 'zone', 'harvester', 'basket', 'relation', 'ts'])
         && request.resource.data.keys().hasAll(['team', 'zone', 'harvester', 'basket', 'relation', 'ts'])
         && request.resource.data.team in ['t1', 't2', 't3', 't4', 't5', 't6', 't7', 't8']
         && request.resource.data.zone in ['z1', 'z2', 'z3', 'z4', 'z5']
