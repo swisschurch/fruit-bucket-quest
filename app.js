@@ -18,7 +18,7 @@ const DEFAULT_TEAMS = [
   { name: "Geneva", zones: ["Geneva"], quota: 11 },
 ];
 const GAME_VERSION = 2;
-// The campaign ended on 13 November 2026: participants see the closing page; host views still work.
+// The campaign ended on 13 November 2026: everyone except the host sees only the host sign-in.
 const QUEST_CLOSED = true;
 const FEED_MAX = 50; // how many recent buckets the big-screen feed keeps (scrollable)
 // Big-screen Tree of Life art: image size and the y where the tree's roots meet the ground
@@ -742,7 +742,7 @@ async function boot() {
   const route = location.hash.replace("#", "");
   if (route === "screen") startScreen();
   else if (route === "admin") startAdmin();
-  else if (QUEST_CLOSED) $("#view-closed").hidden = false;
+  else if (QUEST_CLOSED) startAdmin(); // closed: only the host sign-in, nothing for participants
   else startJoin();
 }
 window.addEventListener("hashchange", () => location.reload());
