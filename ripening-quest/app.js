@@ -49,8 +49,9 @@ const $ = (s) => document.querySelector(s);
 const clean = (s) => String(s ?? "").replace(/\s+/g, " ").trim().slice(0, 20);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const svg = (id, cls = "") => `<svg class="${cls}" aria-hidden="true"><use href="#${id}"/></svg>`;
-function maskWord(w) { const a = [...w]; if (a.length <= 1) return w; if (a.length === 2) return a[0] + "*"; return a[0] + "*".repeat(a.length - 2) + a[a.length - 1]; }
-const maskName = (n) => clean(n).split(" ").map(maskWord).join(" ");
+// Public screens show initials only: "Anna Keller" → "A. K."
+function maskWord(w) { const a = [...w.replace(/[^\p{L}]/gu, "")]; return a.length ? a[0].toUpperCase() + "." : ""; }
+const maskName = (n) => clean(n).split(/[\s.\-]+/).map(maskWord).filter(Boolean).join(" ");
 const personKey = (team, zone, name) => `${team}|${zone}|${clean(name)}`;
 
 // Teams and cells come from the bucket game (public/config); goals from this game (public/config2)
@@ -351,8 +352,9 @@ function startJoin(ready = Promise.resolve()) {
   }
 
   function startFruit(name) {
-    const n = clean(name);
-    if (!n) { toast("Type a name first", true); return; }
+    const n = clean(name).toUpperCase();
+    if (!n) { toast("Type their initials first", true); return; }
+    if (!/^(\p{L}\.?[\s-]?){1,3}$/u.test(n)) { toast("Initials only, e.g. M.R. (no full names)", true); return; }
     if (myLocal().some((m) => clean(m.fruit).toLowerCase() === n.toLowerCase())) { toast(`${n} is already a red fruit`, true); return; }
     const key = `${personKey(profile.team, profile.zone, profile.name)}|${n.toLowerCase()}`;
     cur = prog.find((p) => p.key === key);

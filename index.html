@@ -304,7 +304,7 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
       <h2>Get a new bucket</h2>
       <form id="j-form" autocomplete="off">
         <div class="field"><label for="f-me">Your name</label><input id="f-me" maxlength="20" required></div>
-        <div class="field"><label for="f-basket">Bucket name</label><input id="f-basket" maxlength="20" required placeholder="Name of the person for this bucket"></div>
+        <div class="field"><label for="f-basket">Bucket initials</label><input id="f-basket" maxlength="8" required placeholder="Initials of the person, e.g. M.R." autocomplete="off" autocapitalize="characters"></div>
         <div class="field"><label for="f-rel">Relationship</label><input id="f-rel" maxlength="20" required list="rel-list" placeholder="e.g. Friend, Family, Coworker"></div>
         <datalist id="rel-list"><option value="Family"><option value="Friend"><option value="Coworker"><option value="Classmate"><option value="Neighbor"><option value="Acquaintance"></datalist>
         <button class="btn" type="submit" id="f-submit">Add bucket</button>

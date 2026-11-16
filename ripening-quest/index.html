@@ -387,7 +387,7 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
         <p>Think of one person. Go through the four checklists for them: water, nourish, sunlight and catch the bugs. When all four are done, their fruit turns red for your team.</p>
         <div class="rules"><svg class="water"><use href="#i-water"/></svg> + <svg class="nourish"><use href="#i-sprout"/></svg> + <svg class="sun"><use href="#i-sun"/></svg> + <svg class="bug"><use href="#i-bug"/></svg> <span class="arrow">→</span> <svg><use href="#i-apple-red"/></svg> +1 for your team</div>
         <form id="j-pick-form" autocomplete="off">
-          <div class="field"><label for="j-fruit-name">Person's name</label><input id="j-fruit-name" maxlength="20" placeholder="e.g. Marco Rossi"></div>
+          <div class="field"><label for="j-fruit-name">Person's initials</label><input id="j-fruit-name" maxlength="8" placeholder="e.g. M.R." autocomplete="off" autocapitalize="characters"></div>
           <button class="btn" type="submit">Start ripening</button>
         </form>
         <div class="sugg-wrap" id="j-sugg-wrap" hidden><span>Or pick from your buckets</span><div class="sugg" id="j-sugg"></div></div>
@@ -409,7 +409,7 @@ td button{border:1px solid var(--line);background:var(--cream);border-radius:8px
     <section class="card mine">
       <h2>My fruits</h2>
       <ul class="mine-list" id="j-mine"></ul>
-      <p class="muted" id="j-mine-empty">None yet. Type a name above to plant your first fruit.</p>
+      <p class="muted" id="j-mine-empty">None yet. Type their initials above to plant your first fruit.</p>
     </section>
   </div>
 </main>

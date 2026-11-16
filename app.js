@@ -35,15 +35,13 @@ const clean = (s) => String(s ?? "").replace(/\s+/g, " ").trim().slice(0, 20);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const svg = (id, cls = "") => `<svg class="${cls}" aria-hidden="true"><use href="#${id}"/></svg>`;
 
-// "김민수" → "김*수", "Anna Keller" → "A**a K****r"
+// Public screens show initials only: "Anna Keller" → "A. K.", "김민수" → "김."
 function maskWord(w) {
-  const a = [...w];
-  if (a.length <= 1) return w;
-  if (a.length === 2) return a[0] + "*";
-  return a[0] + "*".repeat(a.length - 2) + a[a.length - 1];
+  const a = [...w.replace(/[^\p{L}]/gu, "")];
+  return a.length ? a[0].toUpperCase() + "." : "";
 }
 export function maskName(n) {
-  return clean(n).split(" ").map(maskWord).join(" ");
+  return clean(n).split(/[\s.\-]+/).map(maskWord).filter(Boolean).join(" ");
 }
 
 function normalizeGame(g) {
@@ -355,7 +353,8 @@ function startJoin() {
 
   $("#j-form").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const me = clean($("#f-me").value), basket = clean($("#f-basket").value), relation = clean($("#f-rel").value);
+    const me = clean($("#f-me").value), basket = clean($("#f-basket").value).toUpperCase(), relation = clean($("#f-rel").value);
+    if (basket && !/^(\p{L}\.?[\s-]?){1,3}$/u.test(basket)) { toast("Initials only, e.g. M.R. (no full names)", true); return; }
     if (!me || !basket || !relation) { toast("Please fill in all three fields", true); return; }
     if (me !== profile.name) { profile = { ...profile, name: me }; store.set("harvest-profile", profile); lastMyCount = null; }
     if (myLocal().some((m) => m.basket === basket)) { toast(`You already added a bucket for ${basket}`, true); return; }
