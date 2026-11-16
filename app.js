@@ -34,6 +34,13 @@ const $ = (s) => document.querySelector(s);
 const clean = (s) => String(s ?? "").replace(/\s+/g, " ").trim().slice(0, 20);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const svg = (id, cls = "") => `<svg class="${cls}" aria-hidden="true"><use href="#${id}"/></svg>`;
+// Member names: first name + initial of the surname ("Anna Keller" → "Anna K.")
+function shortName(n) {
+  const t = clean(n).split(" ").filter(Boolean);
+  if (t.length < 2) return t.join(" ");
+  const last = [...t.pop().replace(/[^\p{L}]/gu, "")][0];
+  return last ? `${t.join(" ")} ${last.toUpperCase()}.` : t.join(" ");
+}
 
 // Public screens show initials only: "Anna Keller" → "A. K.", "김민수" → "김."
 function maskWord(w) {
@@ -237,6 +244,7 @@ function startJoin() {
   let game = normalizeGame(null);
   let stats = null;
   let profile = store.get("harvest-profile", null);
+  if (profile?.name) profile.name = shortName(profile.name);
   let mine = store.get("harvest-mine", []);
   let draft = { team: profile?.team, zone: profile?.zone };
   let lastMyCount = null;
@@ -257,7 +265,7 @@ function startJoin() {
   $("#j-zones").addEventListener("click", (e) => { const b = e.target.closest("[data-zone]"); if (b) { draft.zone = b.dataset.zone; renderSetup(); } });
   $("#j-name").addEventListener("input", renderSetup);
   $("#j-start").addEventListener("click", () => {
-    profile = { team: draft.team, zone: draft.zone, name: clean($("#j-name").value) };
+    profile = { team: draft.team, zone: draft.zone, name: shortName($("#j-name").value) };
     store.set("harvest-profile", profile);
     setTimeout(() => linkIds(), 0);
     showMain();
@@ -353,7 +361,7 @@ function startJoin() {
 
   $("#j-form").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const me = clean($("#f-me").value), basket = clean($("#f-basket").value).toUpperCase(), relation = clean($("#f-rel").value);
+    const me = shortName($("#f-me").value), basket = clean($("#f-basket").value).toUpperCase(), relation = clean($("#f-rel").value);
     if (basket && !/^(\p{L}\.?[\s-]?){1,3}$/u.test(basket)) { toast("Initials only, e.g. M.R. (no full names)", true); return; }
     if (!me || !basket || !relation) { toast("Please fill in all three fields", true); return; }
     if (me !== profile.name) { profile = { ...profile, name: me }; store.set("harvest-profile", profile); lastMyCount = null; }

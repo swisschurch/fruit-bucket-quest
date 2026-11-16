@@ -49,6 +49,13 @@ const $ = (s) => document.querySelector(s);
 const clean = (s) => String(s ?? "").replace(/\s+/g, " ").trim().slice(0, 20);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const svg = (id, cls = "") => `<svg class="${cls}" aria-hidden="true"><use href="#${id}"/></svg>`;
+// Member names: first name + initial of the surname ("Anna Keller" → "Anna K.")
+function shortName(n) {
+  const t = clean(n).split(" ").filter(Boolean);
+  if (t.length < 2) return t.join(" ");
+  const last = [...t.pop().replace(/[^\p{L}]/gu, "")][0];
+  return last ? `${t.join(" ")} ${last.toUpperCase()}.` : t.join(" ");
+}
 // Public screens show initials only: "Anna Keller" → "A. K."
 function maskWord(w) { const a = [...w.replace(/[^\p{L}]/gu, "")]; return a.length ? a[0].toUpperCase() + "." : ""; }
 const maskName = (n) => clean(n).split(/[\s.\-]+/).map(maskWord).filter(Boolean).join(" ");
@@ -247,6 +254,17 @@ function startJoin(ready = Promise.resolve()) {
   let prog = store.get("ripen-progress", []);
   let draft = { team: profile?.team, zone: profile?.zone };
   let cur = null; // the progress entry being worked on
+  // Privacy migration (16 Nov 2026): this phone may still hold full names from before.
+  // Member name → first name + surname initial, fruit → initials, keys rebuilt to match the server.
+  if (!store.get("privacy-migrated-v1", false)) {
+    const toIni = (f) => (/^(\p{L}\.?[\s-]?){1,3}$/u.test(clean(f)) ? clean(f).toUpperCase() : maskName(f));
+    if (profile?.name) { profile.name = shortName(profile.name); store.set("harvest-profile", profile); }
+    for (const m of mine) { if (m.name) m.name = shortName(m.name); m.fruit = toIni(m.fruit); }
+    for (const p of prog) { p.name = shortName(p.name); p.fruit = toIni(p.fruit); p.key = `${personKey(p.team, p.zone, p.name)}|${p.fruit.toLowerCase()}`; }
+    for (const b of buckets) { if (b.basket) b.basket = toIni(b.basket); if (b.harvester) b.harvester = shortName(b.harvester); }
+    store.set("ripen-mine", mine); store.set("ripen-progress", prog); store.set("harvest-mine", buckets);
+    store.set("privacy-migrated-v1", true);
+  }
 
   const isMe = (m) => profile && m.team === profile.team && m.zone === profile.zone && clean(m.name) === clean(profile.name);
   const myLocal = () => mine.filter(isMe);
@@ -269,7 +287,7 @@ function startJoin(ready = Promise.resolve()) {
   $("#j-zones").addEventListener("click", (e) => { const b = e.target.closest("[data-zone]"); if (b) { draft.zone = b.dataset.zone; renderSetup(); } });
   $("#j-name").addEventListener("input", renderSetup);
   $("#j-start").addEventListener("click", () => {
-    profile = { team: draft.team, zone: draft.zone, name: clean($("#j-name").value) };
+    profile = { team: draft.team, zone: draft.zone, name: shortName($("#j-name").value) };
     store.set("harvest-profile", profile);
     showMain();
   });
